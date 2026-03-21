@@ -1,0 +1,140 @@
+---
+title: API Reference
+description: Complete API reference for all exported functions
+---
+
+## Authentication
+
+### `generateLoginUrl(locale)`
+
+Generate a login URL for the Audible PKCE OAuth flow.
+
+```typescript
+const { loginUrl, session, cookies } = await generateLoginUrl('fr')
+```
+
+**Parameters:**
+| Name | Type | Description |
+|------|------|-------------|
+| `locale` | `AudibleLocale` | The Audible marketplace to authenticate against |
+
+**Returns:** `Promise<{ loginUrl: string, session: AuthSession, cookies: AudibleCookie[] }>`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `loginUrl` | `string` | Amazon OAuth login URL to redirect the user to |
+| `session` | `AuthSession` | Session data to pass to `registerDevice()` |
+| `cookies` | `AudibleCookie[]` | 3 cookies to set before redirecting |
+
+---
+
+### `registerDevice(authorizationCode, session)`
+
+Complete device registration using the authorization code from the OAuth callback.
+
+```typescript
+const credentials = await registerDevice(code, session)
+```
+
+**Parameters:**
+| Name | Type | Description |
+|------|------|-------------|
+| `authorizationCode` | `string` | The code from the OAuth callback URL |
+| `session` | `AuthSession` | The session returned by `generateLoginUrl()` |
+
+**Returns:** `Promise<AudibleCredentials>`
+
+**Throws:** `Error` if registration fails (invalid code, expired session, etc.)
+
+---
+
+### `refreshAccessToken(credentials)`
+
+Refresh an expired access token.
+
+```typescript
+const updated = await refreshAccessToken(credentials)
+```
+
+**Parameters:**
+| Name | Type | Description |
+|------|------|-------------|
+| `credentials` | `AudibleCredentials` | Current credentials with a valid `refreshToken` |
+
+**Returns:** `Promise<AudibleCredentials>` — New credentials with updated `accessToken` and `expiresAt`
+
+**Throws:** `Error` if the refresh token is invalid
+
+---
+
+## Data Fetching
+
+### `fetchLibrary(credentials)`
+
+Fetch the user's entire Audible library with automatic pagination.
+
+```typescript
+const { items, credentials } = await fetchLibrary(credentials)
+```
+
+**Parameters:**
+| Name | Type | Description |
+|------|------|-------------|
+| `credentials` | `AudibleCredentials` | Valid credentials |
+
+**Returns:** `Promise<{ items: AudibleItem[], credentials: AudibleCredentials }>`
+
+Pagination is automatic — all items are fetched (50 per page).
+
+---
+
+### `fetchWishlist(credentials)`
+
+Fetch the user's entire Audible wishlist with automatic pagination.
+
+```typescript
+const { items, credentials } = await fetchWishlist(credentials)
+```
+
+**Parameters:**
+| Name | Type | Description |
+|------|------|-------------|
+| `credentials` | `AudibleCredentials` | Valid credentials |
+
+**Returns:** `Promise<{ items: AudibleItem[], credentials: AudibleCredentials }>`
+
+---
+
+### `verifyConnection(credentials)`
+
+Verify that credentials are valid by making a minimal API call.
+
+```typescript
+await verifyConnection(credentials)
+```
+
+**Parameters:**
+| Name | Type | Description |
+|------|------|-------------|
+| `credentials` | `AudibleCredentials` | Credentials to verify |
+
+**Returns:** `Promise<void>`
+
+**Throws:** `Error` if credentials are invalid or expired
+
+---
+
+## Configuration
+
+### `AUDIBLE_LOCALES`
+
+A record mapping each `AudibleLocale` to its marketplace configuration.
+
+```typescript
+import { AUDIBLE_LOCALES } from 'audible-api-ts'
+
+AUDIBLE_LOCALES['fr']
+// { domain: 'fr', marketplaceId: 'A2728XDNODOQ8T', countryCode: 'fr' }
+```
+
+**Type:** `Record<AudibleLocale, LocaleConfig>`

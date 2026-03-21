@@ -1,0 +1,112 @@
+---
+title: Types Reference
+description: All TypeScript types exported by audible-api-ts
+---
+
+## AudibleLocale
+
+String union of all supported Audible marketplace identifiers.
+
+```typescript
+type AudibleLocale =
+  | 'fr'
+  | 'com'
+  | 'co.uk'
+  | 'de'
+  | 'it'
+  | 'es'
+  | 'ca'
+  | 'com.au'
+  | 'in'
+  | 'co.jp'
+```
+
+---
+
+## AudibleCredentials
+
+Credentials obtained after device registration. Used for all API calls.
+
+```typescript
+type AudibleCredentials = {
+  accessToken: string       // Bearer token (expires)
+  refreshToken: string      // Long-lived refresh token
+  adpToken: string          // MAC DMS token for request signing
+  devicePrivateKey: string  // RSA private key for signing
+  serial: string            // Device serial (UUID format, no dashes)
+  locale: AudibleLocale     // Marketplace locale
+  expiresAt: Date           // Access token expiration
+}
+```
+
+---
+
+## AudibleItem
+
+An audiobook from the Audible catalog, as returned by `fetchLibrary()` and `fetchWishlist()`.
+
+```typescript
+type AudibleItem = {
+  asin: string              // Unique identifier (10-char alphanumeric)
+  title: string             // Book title
+  authors: string[]         // Author name(s)
+  narrators: string[]       // Narrator name(s)
+  durationMinutes: number   // Total duration in minutes
+  publisher?: string        // Publisher name
+  language?: string         // Language (e.g. "english")
+  releaseDate?: Date        // Release date
+  coverUrl?: string         // Cover image URL (500px preferred)
+  series?: {
+    name: string            // Series name
+    position?: number       // Position in series
+  }
+  finishedAt?: Date         // When the user finished listening
+}
+```
+
+---
+
+## AuthSession
+
+PKCE session data. Returned by `generateLoginUrl()`, passed to `registerDevice()`.
+
+```typescript
+type AuthSession = {
+  codeVerifier: string     // PKCE code verifier
+  serial: string           // Device serial
+  locale: AudibleLocale    // Marketplace locale
+  createdAt: Date          // When the session was created
+}
+```
+
+You must store this between the login URL generation and the device registration callback.
+
+---
+
+## AudibleCookie
+
+A cookie to set in the browser before redirecting to the login URL.
+
+```typescript
+type AudibleCookie = {
+  name: string    // Cookie name (frc, map-md, or amzn-app-id)
+  value: string   // Cookie value
+  domain: string  // Cookie domain (e.g. ".amazon.fr")
+}
+```
+
+---
+
+## LocaleConfig
+
+Configuration for a specific Audible marketplace.
+
+```typescript
+type LocaleConfig = {
+  domain: string        // Amazon/Audible domain suffix
+  marketplaceId: string // Internal marketplace ID
+  countryCode: string   // Two-letter country code
+}
+```
+
+Accessible via the `AUDIBLE_LOCALES` constant.

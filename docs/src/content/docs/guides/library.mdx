@@ -1,0 +1,119 @@
+---
+title: Library & Wishlist
+description: Fetching audiobooks from your Audible library and wishlist
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+## Fetching the Library
+
+```typescript
+import { fetchLibrary } from 'audible-api-ts'
+
+const { items, credentials } = await fetchLibrary(credentials)
+```
+
+This fetches **all** audiobooks in the user's library. Pagination is handled automatically (50 items per page).
+
+## Fetching the Wishlist
+
+```typescript
+import { fetchWishlist } from 'audible-api-ts'
+
+const { items, credentials } = await fetchWishlist(credentials)
+```
+
+Same API, same response shape — just a different data source.
+
+## The AudibleItem
+
+Each item in the response has this shape:
+
+```typescript
+type AudibleItem = {
+  asin: string             // Unique Audible identifier (e.g. "B08G9PRS1K")
+  title: string            // Book title
+  authors: string[]        // Author names
+  narrators: string[]      // Narrator names
+  durationMinutes: number  // Total listening time in minutes
+  publisher?: string       // Publisher name
+  language?: string        // Language (e.g. "english", "french")
+  releaseDate?: Date       // Release date
+  coverUrl?: string        // Cover image URL (500px or 252px)
+  series?: {
+    name: string           // Series name
+    position?: number      // Position in the series
+  }
+  finishedAt?: Date        // When the user finished listening (library only)
+}
+```
+
+## Examples
+
+### List all finished audiobooks
+
+```typescript
+const { items } = await fetchLibrary(credentials)
+
+const finished = items.filter((book) => book.finishedAt)
+console.log(`Listened to ${finished.length} out of ${items.length} audiobooks`)
+```
+
+### Group by series
+
+```typescript
+const bySeries = new Map<string, typeof items>()
+
+for (const book of items) {
+  if (book.series) {
+    const list = bySeries.get(book.series.name) ?? []
+    list.push(book)
+    bySeries.set(book.series.name, list)
+  }
+}
+
+for (const [series, books] of bySeries) {
+  console.log(`${series}: ${books.length} books`)
+}
+```
+
+### Calculate total listening time
+
+```typescript
+const { items } = await fetchLibrary(credentials)
+
+const totalMinutes = items.reduce((sum, book) => sum + book.durationMinutes, 0)
+const hours = Math.floor(totalMinutes / 60)
+const days = Math.floor(hours / 24)
+
+console.log(`Total library: ${hours} hours (${days} days)`)
+```
+
+## Verifying Connection
+
+Before fetching data, you can verify that credentials are still valid:
+
+```typescript
+import { verifyConnection } from 'audible-api-ts'
+
+try {
+  await verifyConnection(credentials)
+  console.log('Credentials are valid')
+} catch {
+  console.log('Credentials are invalid or expired')
+}
+```
+
+<Aside type="tip">
+  `verifyConnection` makes a minimal API call (1 item, 1 page) to check that the credentials work. Use it to show connection status in your UI without fetching the full library.
+</Aside>
+
+## Response Groups
+
+The library automatically requests these data groups from the Audible API:
+
+- `product_details` — Title, ASIN, release date
+- `contributors` — Authors and narrators
+- `media` — Cover images
+- `product_attrs` — Publisher, language, series
+- `listening_status` — Finish status and progress

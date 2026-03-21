@@ -1,0 +1,78 @@
+---
+title: Getting Started
+description: Install audible-api-ts and make your first API call
+---
+
+## Installation
+
+```bash
+# bun
+bun add audible-api-ts
+
+# npm
+npm install audible-api-ts
+
+# pnpm
+pnpm add audible-api-ts
+```
+
+### Requirements
+
+- **Node.js 18+** (for native `fetch` and `crypto`)
+- **TypeScript 5+** (recommended)
+
+## Quick Start
+
+The Audible API uses a 3-step authentication flow:
+
+1. **Generate a login URL** — redirect the user to Amazon's login page
+2. **Register the device** — exchange the authorization code for credentials
+3. **Fetch data** — use credentials to access library and wishlist
+
+```typescript
+import {
+  generateLoginUrl,
+  registerDevice,
+  fetchLibrary,
+  fetchWishlist,
+} from 'audible-api-ts'
+
+// Step 1: Generate the login URL for the French marketplace
+const { loginUrl, session, cookies } = await generateLoginUrl('fr')
+
+// → Redirect your user to `loginUrl`
+// → Set `cookies` in the browser before redirecting
+// → Store `session` — you'll need it in step 2
+
+// Step 2: After the user logs in, extract the authorization code
+// from the callback URL and register the device
+const credentials = await registerDevice(authorizationCode, session)
+
+// → Store `credentials` securely — you'll reuse them for all API calls
+
+// Step 3: Fetch the user's library
+const { items: library } = await fetchLibrary(credentials)
+
+console.log(`Found ${library.length} audiobooks`)
+
+for (const book of library) {
+  console.log(`📖 ${book.title}`)
+  console.log(`   Authors: ${book.authors.join(', ')}`)
+  console.log(`   Duration: ${book.durationMinutes} min`)
+  if (book.series) {
+    console.log(`   Series: ${book.series.name} #${book.series.position}`)
+  }
+}
+
+// Bonus: Fetch the wishlist too
+const { items: wishlist } = await fetchWishlist(credentials)
+console.log(`${wishlist.length} books in wishlist`)
+```
+
+## What's Next?
+
+- **[Authentication Guide](/audible-api-ts/guides/authentication/)** — Deep dive into the PKCE flow, cookies, and session management
+- **[Library & Wishlist](/audible-api-ts/guides/library/)** — Pagination, response structure, and available fields
+- **[Token Refresh](/audible-api-ts/guides/token-refresh/)** — Handle token expiration gracefully
+- **[Locales](/audible-api-ts/guides/locales/)** — All 10 supported Audible marketplaces
+- **[API Reference](/audible-api-ts/reference/api/)** — Complete function signatures and parameters

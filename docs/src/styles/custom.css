@@ -1,0 +1,25 @@
+/* Audible-inspired color palette — orange/amber tones */
+:root {
+  --sl-color-accent-low: #2a1800;
+  --sl-color-accent: #f59e0b;
+  --sl-color-accent-high: #fef3c7;
+  --sl-color-white: #ffffff;
+  --sl-color-gray-1: #f0f0f0;
+  --sl-color-gray-2: #c4c4c4;
+  --sl-color-gray-3: #8b8b8b;
+  --sl-color-gray-4: #585858;
+  --sl-color-gray-5: #383838;
+  --sl-color-gray-6: #272727;
+  --sl-color-black: #141414;
+}
+
+:root[data-theme='light'] {
+  --sl-color-accent-low: #fef3c7;
+  --sl-color-accent: #d97706;
+  --sl-color-accent-high: #451a03;
+}
+
+/* Hero landing page enhancements */
+.hero {
+  padding-block: 3rem;
+}

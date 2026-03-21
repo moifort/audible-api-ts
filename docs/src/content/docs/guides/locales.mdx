@@ -1,0 +1,76 @@
+---
+title: Locales
+description: Supported Audible marketplaces and their configuration
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+## Supported Marketplaces
+
+audible-api-ts supports all 10 Audible marketplaces:
+
+| Locale | Country | Amazon Domain | Audible Domain |
+|--------|---------|---------------|----------------|
+| `fr` | France | amazon.fr | audible.fr |
+| `com` | United States | amazon.com | audible.com |
+| `co.uk` | United Kingdom | amazon.co.uk | audible.co.uk |
+| `de` | Germany | amazon.de | audible.de |
+| `it` | Italy | amazon.it | audible.it |
+| `es` | Spain | amazon.es | audible.es |
+| `ca` | Canada | amazon.ca | audible.ca |
+| `com.au` | Australia | amazon.com.au | audible.com.au |
+| `in` | India | amazon.in | audible.in |
+| `co.jp` | Japan | amazon.co.jp | audible.co.jp |
+
+## Usage
+
+Pass the locale when generating the login URL:
+
+```typescript
+import { generateLoginUrl } from 'audible-api-ts'
+
+// French marketplace
+const fr = await generateLoginUrl('fr')
+
+// US marketplace
+const us = await generateLoginUrl('com')
+
+// Japanese marketplace
+const jp = await generateLoginUrl('co.jp')
+```
+
+The locale is stored in the credentials and automatically used for all subsequent API calls.
+
+## Locale Configuration
+
+You can access the full locale configuration:
+
+```typescript
+import { AUDIBLE_LOCALES } from 'audible-api-ts'
+
+const frConfig = AUDIBLE_LOCALES['fr']
+// { domain: 'fr', marketplaceId: 'A2728XDNODOQ8T', countryCode: 'fr' }
+```
+
+Each locale config contains:
+
+| Field | Description |
+|-------|-------------|
+| `domain` | The Amazon/Audible domain suffix |
+| `marketplaceId` | Amazon's internal marketplace identifier |
+| `countryCode` | Two-letter country code used in auth URLs |
+
+<Aside type="note">
+  A user's library is marketplace-specific. If a user has audiobooks on both audible.com and audible.fr, you'll need to authenticate and fetch separately for each locale.
+</Aside>
+
+## Type Safety
+
+The `AudibleLocale` type is a string union — TypeScript will catch invalid locales at compile time:
+
+```typescript
+import type { AudibleLocale } from 'audible-api-ts'
+
+const locale: AudibleLocale = 'fr'    // OK
+const invalid: AudibleLocale = 'xyz'  // Type error!
+```

@@ -1,0 +1,64 @@
+---
+title: audible-api-ts
+description: A fully typed TypeScript client for the Audible API
+template: splash
+hero:
+  tagline: The first fully typed TypeScript client for the Audible API. Authentication, library, wishlist — all with complete type safety.
+  actions:
+    - text: Get Started
+      link: /audible-api-ts/getting-started/
+      icon: right-arrow
+      variant: primary
+    - text: View on GitHub
+      link: https://github.com/moifort/audible-api-ts
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## Why audible-api-ts?
+
+<CardGrid>
+  <Card title="Type-safe" icon="seti:typescript">
+    Every function, every response, every credential — fully typed with TypeScript. No `any`, no guessing.
+  </Card>
+  <Card title="10 Locales" icon="globe">
+    France, US, UK, Germany, Italy, Spain, Canada, Australia, India, Japan — all supported out of the box.
+  </Card>
+  <Card title="PKCE Authentication" icon="approve-check">
+    Complete OAuth2 PKCE flow with device registration, just like the official Audible mobile app.
+  </Card>
+  <Card title="Minimal Dependencies" icon="rocket">
+    Only `zod` for API response validation. Uses native `fetch` and Node.js `crypto`. Nothing else.
+  </Card>
+</CardGrid>
+
+## Quick Example
+
+```typescript
+import {
+  generateLoginUrl,
+  registerDevice,
+  fetchLibrary,
+} from 'audible-api-ts'
+
+// 1. Generate login URL
+const { loginUrl, session, cookies } = await generateLoginUrl('com')
+
+// 2. User logs in via browser, you get the authorization code
+const credentials = await registerDevice(authorizationCode, session)
+
+// 3. Fetch the library
+const { items } = await fetchLibrary(credentials)
+
+for (const book of items) {
+  console.log(`${book.title} by ${book.authors.join(', ')}`)
+}
+```
+
+## The TypeScript Audible Client
+
+There is an excellent [Python Audible library](https://github.com/mkb79/Audible) by mkb79. But if you're building with TypeScript or Node.js, you've been on your own — until now.
+
+**audible-api-ts** brings the same power to the TypeScript ecosystem: full PKCE authentication, signed API requests, paginated data fetching, and complete type definitions for every response.

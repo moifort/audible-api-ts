@@ -1,0 +1,127 @@
+---
+title: Authentication
+description: How the PKCE OAuth flow works with Audible's API
+---
+
+import { Steps, Aside } from '@astrojs/starlight/components';
+
+## How It Works
+
+Audible uses the same authentication flow as the official iOS app: **OpenID Connect with PKCE** (Proof Key for Code Exchange), followed by **device registration** on Amazon's API.
+
+This gives you long-lived credentials that can be refreshed without re-authentication.
+
+## The Flow
+
+<Steps>
+1. **Generate a login URL** — `generateLoginUrl()` creates a PKCE challenge, a device serial, and the Amazon login URL with the correct parameters for the chosen locale.
+
+2. **User logs in** — Redirect the user to the login URL in a browser. They sign in with their Amazon/Audible account.
+
+3. **Extract the authorization code** — After login, Amazon redirects to a callback URL. Extract the `openid.oa2.authorization_code` parameter from the redirect URL.
+
+4. **Register the device** — `registerDevice()` exchanges the authorization code for permanent credentials: access token, refresh token, ADP token, and device private key.
+</Steps>
+
+## Step 1: Generate Login URL
+
+```typescript
+import { generateLoginUrl } from 'audible-api-ts'
+
+const { loginUrl, session, cookies } = await generateLoginUrl('fr')
+```
+
+The function returns three things:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `loginUrl` | `string` | The Amazon login URL to redirect the user to |
+| `session` | `AuthSession` | Session data needed for device registration |
+| `cookies` | `AudibleCookie[]` | Cookies to set in the browser before redirecting |
+
+### Setting Cookies
+
+The cookies must be set on the `.amazon.{domain}` domain **before** the user navigates to the login URL. There are 3 cookies:
+
+- **`frc`** — A random value identifying the session
+- **`map-md`** — Device metadata (app version, bundle ID)
+- **`amzn-app-id`** — App identifier string
+
+<Aside type="tip">
+  If you're building a web app, set these cookies via your backend. If you're building a CLI or desktop app, use a webview or embedded browser that lets you control cookies.
+</Aside>
+
+## Step 2: User Login
+
+Open `loginUrl` in the user's browser. After successful login, Amazon redirects to:
+
+```
+https://www.amazon.{domain}/ap/maplanding?openid.oa2.authorization_code=XXXXX&...
+```
+
+Extract the `openid.oa2.authorization_code` query parameter from this URL.
+
+## Step 3: Register Device
+
+```typescript
+import { registerDevice } from 'audible-api-ts'
+
+const credentials = await registerDevice(authorizationCode, session)
+```
+
+<Aside type="caution">
+  The `session` object must be the exact same one returned by `generateLoginUrl()`. It contains the PKCE code verifier needed to complete the exchange.
+</Aside>
+
+### Storing Credentials
+
+`registerDevice` returns an `AudibleCredentials` object. **You are responsible for storing it** — the library is stateless by design.
+
+```typescript
+// Example: save to a JSON file
+import { writeFileSync } from 'node:fs'
+
+writeFileSync(
+  'credentials.json',
+  JSON.stringify(credentials, null, 2)
+)
+```
+
+The credentials contain:
+
+| Field | Purpose |
+|-------|---------|
+| `accessToken` | Bearer token for API requests (expires) |
+| `refreshToken` | Long-lived token for getting new access tokens |
+| `adpToken` | MAC DMS token used for request signing |
+| `devicePrivateKey` | RSA private key for signing requests |
+| `serial` | Device serial number |
+| `locale` | The marketplace locale |
+| `expiresAt` | When the access token expires |
+
+<Aside type="danger">
+  Treat credentials as sensitive data. The `devicePrivateKey` and tokens grant full access to the user's Audible account. Store them securely and never expose them in client-side code.
+</Aside>
+
+## Complete Example
+
+```typescript
+import { generateLoginUrl, registerDevice, fetchLibrary } from 'audible-api-ts'
+
+// 1. Generate login URL
+const { loginUrl, session, cookies } = await generateLoginUrl('com')
+console.log('Open this URL:', loginUrl)
+console.log('Set these cookies first:', cookies)
+
+// 2. Wait for user to log in and get the code
+// (your app extracts this from the callback URL)
+const authorizationCode = '...'
+
+// 3. Register device
+const credentials = await registerDevice(authorizationCode, session)
+console.log('Authenticated! Token expires at:', credentials.expiresAt)
+
+// 4. Use the credentials
+const { items } = await fetchLibrary(credentials)
+console.log(`Library contains ${items.length} audiobooks`)
+```
