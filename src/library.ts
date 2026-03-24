@@ -21,14 +21,9 @@ const audibleFetch = async <T>(
 
   const headers = signRequest('GET', signPath, '', credentials)
 
-  const url = new URL(`https://api.audible.${config.domain}${fullPath}`)
-  if (query) {
-    for (const [k, v] of Object.entries(query)) {
-      url.searchParams.set(k, v)
-    }
-  }
+  const fetchUrl = `https://api.audible.${config.domain}${fullPath}${queryString}`
 
-  const response = await fetch(url.toString(), { headers })
+  const response = await fetch(fetchUrl, { headers })
 
   if (!response.ok) {
     throw new Error(`Audible API error: ${response.status} ${response.statusText} (${path})`)
