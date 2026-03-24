@@ -215,25 +215,73 @@ Options for `fetchCatalog()`.
 
 ```typescript
 type CatalogOptions = {
-  categoryId: string
+  category?: AudibleGenre  // genre name, resolved per locale
+  categoryId?: string      // or raw category ID
   sortBy?: 'BestSellers' | 'AvgRating' | 'Relevance'
          | 'ReleaseDate' | '-ReleaseDate' | 'Title'
+  pages?: number           // multi-page fetch (default 1, max 5)
   keywords?: string
   author?: string
   narrator?: string
-  numResults?: number  // default 50, max 50
-  page?: number        // default 1
+  numResults?: number      // default 50, max 50
+  page?: number            // default 1 (single-page mode)
 }
 ```
 
 **Example:**
 ```typescript
+// Using genre name (recommended)
 await fetchCatalog(credentials, {
-  categoryId: '18580628011',
-  sortBy: 'BestSellers',
-  keywords: 'space opera',
+  category: 'science-fiction',
+  pages: 3,
   numResults: 20,
 })
+
+// Using raw category ID
+await fetchCatalog(credentials, {
+  categoryId: '21229020031',
+  keywords: 'space opera',
+})
+```
+
+---
+
+## AudibleGenre
+
+String union of available genre names for catalog search. Resolved to locale-specific category IDs automatically.
+
+```typescript
+type AudibleGenre =
+  | 'science-fiction'
+  | 'fantasy'
+  | 'science-fiction-fantasy'
+  | 'thriller'
+  | 'mystery'
+  | 'horror'
+  | 'romance'
+  | 'historical-fiction'
+  | 'literary-fiction'
+  | 'biography'
+  | 'history'
+  | 'business'
+  | 'self-help'
+  | 'science'
+  | 'children'
+  | 'young-adult'
+  | 'comedy'
+  | 'erotica'
+  | 'religion'
+  | 'sports'
+  | 'travel'
+  | 'lgbtq'
+```
+
+**Example:**
+```typescript
+import { fetchCatalog } from 'audible-api-ts'
+
+// Works on any locale — the library resolves the correct category ID
+const { items } = await fetchCatalog(credentials, { category: 'thriller' })
 ```
 
 ---

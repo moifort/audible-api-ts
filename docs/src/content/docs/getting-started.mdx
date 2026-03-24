@@ -112,10 +112,10 @@ Dune - Livre premier et livre second
 Search the Audible catalog by category, sorted by popularity:
 
 ```typescript
-// Top 10 Science Fiction bestsellers
+// Top 10 Science Fiction by popularity — use genre name, not category ID
 const { items } = await fetchCatalog(credentials, {
-  categoryId: '18580628011',
-  sortBy: 'BestSellers',
+  category: 'science-fiction',
+  pages: 3,        // multi-page for comprehensive results
   numResults: 10,
 })
 

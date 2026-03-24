@@ -69,30 +69,32 @@ Dune by Frank Herbert
 
 ## Catalog Search
 
+Use genre names instead of opaque category IDs — the library resolves them per locale:
+
 ```typescript
 import { fetchCatalog } from 'audible-api-ts'
 
-// Top Science Fiction books sorted by popularity
+// Top Science Fiction by popularity (multi-page for comprehensive results)
 const { items } = await fetchCatalog(credentials, {
-  categoryId: '18580628011',   // Science Fiction (US)
-  sortBy: 'BestSellers',
+  category: 'science-fiction',  // resolved per locale, no ID needed
+  pages: 3,                     // fetch 3 pages × 3 sorts for best coverage
   numResults: 10,
 })
 
-items.map((book) =>
-  console.log(
-    `${book.title} — ${book.rating?.overallDistribution?.numRatings} ratings, ` +
-    `${book.rating?.overallDistribution?.averageRating?.toFixed(1)}/5`
-  )
-)
+items.map((book) => {
+  const r = book.rating?.overallDistribution
+  console.log(`${book.title} — ${r?.numRatings} ratings, ${r?.averageRating?.toFixed(1)}/5`)
+})
 ```
 
 **Output:**
 ```
-Project Hail Mary — 82341 ratings, 4.9/5
-Dune — 45210 ratings, 4.7/5
-The Hitchhiker's Guide to the Galaxy — 38102 ratings, 4.6/5
+L'apprenti assassin — 4453 ratings, 4.8/5
+Dune — 2112 ratings, 4.6/5
+Projet Dernière chance — 832 ratings, 4.7/5
 ```
+
+Available genres: `'science-fiction'`, `'fantasy'`, `'thriller'`, `'romance'`, `'horror'`, `'mystery'`, `'biography'`, `'history'`, `'business'`, `'comedy'`, and [more](https://moifort.github.io/audible-api-ts/reference/types/#audiblegenre).
 
 ## API
 

@@ -56,10 +56,10 @@ library.map((book) => {
   if (progress) console.log(`  Progress: ${progress}%`)
 })
 
-// Search the catalog for bestselling Sci-Fi
+// Search the catalog for bestselling Sci-Fi (genre name, not ID!)
 const { items: scifi } = await fetchCatalog(credentials, {
-  categoryId: '18580628011',
-  sortBy: 'BestSellers',
+  category: 'science-fiction',
+  pages: 3,
   numResults: 5,
 })
 

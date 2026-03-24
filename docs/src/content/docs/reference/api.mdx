@@ -119,9 +119,16 @@ items.map((book) =>
 Search the Audible catalog by category with optional filters. Results are automatically sorted by number of ratings (desc) then average rating (desc).
 
 ```typescript
+// Using genre name (recommended)
 const { items } = await fetchCatalog(credentials, {
-  categoryId: '18580628011',  // Science Fiction (US)
-  sortBy: 'BestSellers',
+  category: 'science-fiction',
+  pages: 3,
+  numResults: 20,
+})
+
+// Or using raw category ID
+const { items: items2 } = await fetchCatalog(credentials, {
+  categoryId: '21229020031',
   numResults: 20,
 })
 
@@ -137,13 +144,15 @@ items.map((book, i) => {
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | `credentials` | `AudibleCredentials` | — | Valid credentials |
-| `options.categoryId` | `string` | *required* | Audible category ID |
+| `options.category` | `AudibleGenre` | — | Genre name, resolved per locale |
+| `options.categoryId` | `string` | — | Raw category ID (alternative to `category`) |
 | `options.sortBy` | `string` | `'Relevance'` | Sort order (see below) |
+| `options.pages` | `number` | `1` | Pages to fetch (max 5). When > 1, fetches across multiple sort orders |
 | `options.keywords` | `string` | — | Search term filter |
 | `options.author` | `string` | — | Filter by author name |
 | `options.narrator` | `string` | — | Filter by narrator name |
-| `options.numResults` | `number` | `50` | Number of results (max 50) |
-| `options.page` | `number` | `1` | Page number |
+| `options.numResults` | `number` | `50` | Number of results to return (max 50) |
+| `options.page` | `number` | `1` | Page number (single-page mode) |
 
 **Sort options:** `'BestSellers'`, `'AvgRating'`, `'Relevance'`, `'ReleaseDate'`, `'-ReleaseDate'`, `'Title'`
 

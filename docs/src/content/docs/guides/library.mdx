@@ -27,32 +27,40 @@ Same API, same response shape — just a different data source.
 
 ## Searching the Catalog
 
+Use genre names instead of opaque category IDs — the library resolves them per locale:
+
 ```typescript
 import { fetchCatalog } from 'audible-api-ts'
 
 const { items } = await fetchCatalog(credentials, {
-  categoryId: '18580628011',   // Science Fiction (US)
-  sortBy: 'BestSellers',
+  category: 'science-fiction',  // resolved to the correct ID per locale
+  pages: 3,                     // multi-page for comprehensive popularity ranking
   numResults: 20,
 })
 ```
 
 Results are automatically sorted by number of ratings (desc) then average rating (desc).
 
+### Available Genres
+
+`'science-fiction'`, `'fantasy'`, `'science-fiction-fantasy'`, `'thriller'`, `'mystery'`, `'horror'`, `'romance'`, `'historical-fiction'`, `'literary-fiction'`, `'biography'`, `'history'`, `'business'`, `'self-help'`, `'science'`, `'children'`, `'young-adult'`, `'comedy'`, `'erotica'`, `'religion'`, `'sports'`, `'travel'`, `'lgbtq'`
+
 ### Catalog Options
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `categoryId` | `string` | *required* | Audible category ID |
+| `category` | `AudibleGenre` | — | Genre name (resolved per locale) |
+| `categoryId` | `string` | — | Raw Audible category ID (alternative to `category`) |
 | `sortBy` | `string` | `'Relevance'` | `'BestSellers'`, `'AvgRating'`, `'Relevance'`, `'ReleaseDate'`, `'-ReleaseDate'`, `'Title'` |
+| `pages` | `number` | `1` | Number of pages to fetch (max 5). When > 1, fetches across multiple sort orders for comprehensive results |
 | `keywords` | `string` | — | Search term |
 | `author` | `string` | — | Filter by author name |
 | `narrator` | `string` | — | Filter by narrator name |
-| `numResults` | `number` | `50` | Max 50 per request |
-| `page` | `number` | `1` | Page number |
+| `numResults` | `number` | `50` | Number of results to return (max 50) |
+| `page` | `number` | `1` | Page number (for single-page mode) |
 
 <Aside type="tip">
-  Category IDs are locale-specific. For example, Science Fiction is `18580628011` on audible.com but `21228885031` on audible.fr.
+  Use `category` for convenience — genre names work across locales. Use `categoryId` only if you need a specific subcategory not covered by the genre list.
 </Aside>
 
 ## The AudibleItem
@@ -259,8 +267,8 @@ Fondation: 7 books
 import { fetchCatalog } from 'audible-api-ts'
 
 const { items } = await fetchCatalog(credentials, {
-  categoryId: '18580628011',
-  sortBy: 'BestSellers',
+  category: 'science-fiction',
+  pages: 3,
   numResults: 10,
 })
 
@@ -275,16 +283,16 @@ items.map((book, i) => {
 
 **Output:**
 ```
-1. Project Hail Mary — 4.9/5 (82341 votes) — Andy Weir
-2. Dune — 4.7/5 (45210 votes) — Frank Herbert
-3. The Hitchhiker's Guide to the Galaxy — 4.6/5 (38102 votes) — Douglas Adams
+1. L'apprenti assassin — 4.8/5 (4453 votes) — Robin Hobb
+2. Dune — 4.6/5 (2112 votes) — Frank Herbert
+3. Projet Dernière chance — 4.7/5 (832 votes) — Andy Weir
 ```
 
 ### Catalog: search by keyword
 
 ```typescript
 const { items } = await fetchCatalog(credentials, {
-  categoryId: '18580628011',
+  category: 'science-fiction',
   keywords: 'robot',
   numResults: 5,
 })
