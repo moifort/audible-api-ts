@@ -17,6 +17,7 @@
     "build:js": "bun build ./src/index.ts --outdir ./dist --target node --format esm --splitting",
     "build:types": "tsc -p tsconfig.build.json",
     "test": "bun test",
+    "test:int": "cd src && bun test *.int.test.ts",
     "lint": "bunx biome check",
     "lint:fix": "bunx biome check --write",
     "docs:dev": "cd docs && bun run dev",

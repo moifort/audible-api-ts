@@ -29,3 +29,21 @@ jobs:
 
       - name: Build
         run: bun run build
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: check
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install
+
+      - name: Integration tests
+        run: bun run test:int
+        env:
+          AUDIBLE_CREDENTIALS: ${{ secrets.AUDIBLE_CREDENTIALS }}
