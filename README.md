@@ -49,10 +49,8 @@ const credentials = await registerDevice(authorizationCode, session)
 // 3. Fetch the library
 const { items } = await fetchLibrary(credentials)
 
-for (const book of items) {
-  console.log(`${book.title} by ${book.authors.join(', ')}`)
-  // → "Dune by Frank Herbert"
-}
+items.map((book) => console.log(`${book.title} by ${book.authors.join(', ')}`))
+// → "Dune by Frank Herbert"
 ```
 
 ## API

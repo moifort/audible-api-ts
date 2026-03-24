@@ -55,14 +55,14 @@ const { items: library } = await fetchLibrary(credentials)
 
 console.log(`Found ${library.length} audiobooks`)
 
-for (const book of library) {
+library.map((book) => {
   console.log(`📖 ${book.title}`)
   console.log(`   Authors: ${book.authors.join(', ')}`)
   console.log(`   Duration: ${book.durationMinutes} min`)
   if (book.series) {
     console.log(`   Series: ${book.series.name} #${book.series.position}`)
   }
-}
+})
 
 // Bonus: Fetch the wishlist too
 const { items: wishlist } = await fetchWishlist(credentials)

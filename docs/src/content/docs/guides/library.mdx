@@ -62,19 +62,11 @@ console.log(`Listened to ${finished.length} out of ${items.length} audiobooks`)
 ### Group by series
 
 ```typescript
-const bySeries = new Map<string, typeof items>()
+const bySeries = Map.groupBy(items.filter((book) => book.series), (book) => book.series!.name)
 
-for (const book of items) {
-  if (book.series) {
-    const list = bySeries.get(book.series.name) ?? []
-    list.push(book)
-    bySeries.set(book.series.name, list)
-  }
-}
-
-for (const [series, books] of bySeries) {
+Array.from(bySeries.entries()).map(([series, books]) =>
   console.log(`${series}: ${books.length} books`)
-}
+)
 ```
 
 ### Calculate total listening time
