@@ -48,11 +48,13 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
+    "lodash-es": "^4.17.23",
     "zod": "^3.24.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.0",
     "@types/bun": "^1.2.0",
+    "@types/lodash-es": "^4.17.12",
     "typescript": "^5.7.0"
   }
 }

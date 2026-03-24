@@ -44,6 +44,29 @@ export type AudibleItem = {
   finishedAt?: Date
 }
 
+/** Rating distribution for an audiobook */
+export type AudibleRating = {
+  averageRating: number
+  numRatings: number
+  numReviews: number
+}
+
+/** An audiobook from the Audible catalog with rating data */
+export type CatalogItem = AudibleItem & {
+  rating?: AudibleRating
+}
+
+/** Options for searching the Audible catalog */
+export type CatalogOptions = {
+  categoryId: string
+  sortBy?: 'BestSellers' | 'AvgRating' | 'Relevance' | 'ReleaseDate' | '-ReleaseDate' | 'Title'
+  keywords?: string
+  author?: string
+  narrator?: string
+  numResults?: number
+  page?: number
+}
+
 /** PKCE auth session — returned by generateLoginUrl, passed back to registerDevice */
 export type AuthSession = {
   codeVerifier: string
