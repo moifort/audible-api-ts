@@ -1,0 +1,286 @@
+# audible-api-ts
+
+> A fully typed TypeScript client for the Audible API — authentication, library, wishlist, catalog search.
+
+## Install
+
+```
+bun add audible-api-ts
+npm install audible-api-ts
+```
+
+Requires Node.js 18+ (native fetch and crypto).
+
+## API
+
+### login(locale: AudibleLocale): Promise<{ loginUrl, session, cookies }>
+
+Generate a PKCE OAuth login URL for the given Audible marketplace.
+
+```typescript
+import { login } from 'audible-api-ts'
+const { loginUrl, session, cookies } = await login('fr')
+```
+
+### register(authorizationCode: string, session: AuthSession): Promise<AudibleCredentials>
+
+Exchange the OAuth authorization code for device credentials.
+
+```typescript
+import { register } from 'audible-api-ts'
+const credentials = await register(code, session)
+```
+
+### refresh(credentials: AudibleCredentials): Promise<AudibleCredentials>
+
+Refresh an expired access token.
+
+```typescript
+import { refresh } from 'audible-api-ts'
+const updated = await refresh(credentials)
+```
+
+### library(credentials: AudibleCredentials): Promise<{ items: AudibleItem[], credentials }>
+
+Fetch the user's entire Audible library with automatic pagination.
+
+```typescript
+import { library } from 'audible-api-ts'
+const { items } = await library(credentials)
+items.map((book) => console.log(`${book.title} by ${book.authors.join(', ')}`))
+```
+
+### wishlist(credentials: AudibleCredentials): Promise<{ items: AudibleItem[], credentials }>
+
+Fetch the user's entire Audible wishlist with automatic pagination.
+
+```typescript
+import { wishlist } from 'audible-api-ts'
+const { items } = await wishlist(credentials)
+```
+
+### catalog(credentials: AudibleCredentials, options: CatalogOptions): Promise<{ items: AudibleItem[], credentials }>
+
+Search the Audible catalog by category. Default sort is 'MostVoted' which fetches all pages and sorts by number of ratings.
+
+```typescript
+import { catalog } from 'audible-api-ts'
+const { items } = await catalog(credentials, {
+  category: 'science-fiction',
+  numResults: 20,
+})
+```
+
+### verify(credentials: AudibleCredentials): Promise<void>
+
+Verify credentials are valid. Throws on invalid/expired credentials.
+
+```typescript
+import { verify } from 'audible-api-ts'
+await verify(credentials)
+```
+
+## Types
+
+### AudibleLocale
+
+```
+'fr' | 'com' | 'co.uk' | 'de' | 'it' | 'es' | 'ca' | 'com.au' | 'in' | 'co.jp'
+```
+
+### AudibleCredentials
+
+```typescript
+{
+  accessToken: string
+  refreshToken: string
+  adpToken: string
+  devicePrivateKey: string
+  serial: string
+  locale: AudibleLocale
+  expiresAt: Date
+}
+```
+
+### AudibleItem
+
+Returned by library(), wishlist(), and catalog().
+
+```typescript
+{
+  asin: string
+  title: string
+  subtitle?: string
+  isbn?: string
+  sku?: string
+  authors: string[]
+  narrators: string[]
+  durationMinutes: number
+  publisher?: string
+  language?: string
+  releaseDate?: Date
+  coverUrl?: string
+  summary?: string
+  description?: string
+  merchandisingSummary?: string
+  copyright?: string
+  formatType?: string
+  contentType?: string
+  contentDeliveryType?: string
+  programParticipation?: string
+  series?: { name: string; position?: number }
+  categories: CategoryLadder[]
+  keywords: string[]
+  rating?: AudibleRating
+  listeningStatus?: ListeningStatus
+  purchaseDate?: Date
+  dateAdded?: Date
+  relationships: AudibleRelationship[]
+  isAdultProduct: boolean
+  productImages: Record<string, string>
+  socialMediaImages: Record<string, string>
+}
+```
+
+### AudibleRating
+
+```typescript
+{
+  numReviews: number
+  overallDistribution?: RatingDistribution
+  performanceDistribution?: RatingDistribution
+  storyDistribution?: RatingDistribution
+}
+```
+
+### RatingDistribution
+
+```typescript
+{
+  averageRating: number
+  displayAverageRating: string
+  displayStars: number
+  numRatings: number
+  numFiveStarRatings: number
+  numFourStarRatings: number
+  numThreeStarRatings: number
+  numTwoStarRatings: number
+  numOneStarRatings: number
+}
+```
+
+### ListeningStatus
+
+```typescript
+{
+  finishedAt?: Date
+  isFinished?: boolean
+  percentComplete?: number
+  timeRemainingSeconds?: number
+}
+```
+
+### CategoryLadder
+
+```typescript
+{
+  root: string
+  categories: { id: string; name: string }[]
+}
+```
+
+### AudibleRelationship
+
+```typescript
+{
+  asin: string
+  relationshipToProduct: string
+  relationshipType: string
+  title?: string
+  sort?: string
+  url?: string
+}
+```
+
+### CatalogOptions
+
+```typescript
+{
+  category?: AudibleGenre       // genre name, resolved per locale
+  categoryId?: string           // or raw Audible category ID
+  sortBy?: 'MostVoted' | 'BestSellers' | 'AvgRating' | 'Relevance' | 'ReleaseDate' | '-ReleaseDate' | 'Title'
+  maxPages?: number             // max pages for MostVoted (default 10)
+  keywords?: string
+  author?: string
+  narrator?: string
+  numResults?: number           // default 50
+  page?: number                 // for non-MostVoted sorts
+}
+```
+
+### AudibleGenre
+
+```
+'science-fiction' | 'fantasy' | 'science-fiction-fantasy' | 'thriller' | 'mystery' | 'horror' | 'romance' | 'historical-fiction' | 'literary-fiction' | 'biography' | 'history' | 'business' | 'self-help' | 'science' | 'children' | 'young-adult' | 'comedy' | 'erotica' | 'religion' | 'sports' | 'travel' | 'lgbtq'
+```
+
+### AuthSession
+
+```typescript
+{
+  codeVerifier: string
+  serial: string
+  locale: AudibleLocale
+  createdAt: Date
+}
+```
+
+### AudibleCookie
+
+```typescript
+{
+  name: string
+  value: string
+  domain: string
+}
+```
+
+## Constants
+
+### AUDIBLE_LOCALES: Record<AudibleLocale, LocaleConfig>
+
+Marketplace configurations. Example: `AUDIBLE_LOCALES['fr']` → `{ domain: 'fr', marketplaceId: 'A2728XDNODOQ8T', countryCode: 'fr' }`
+
+### GENRE_CATEGORIES: Record<AudibleGenre, Partial<Record<AudibleLocale, string>>>
+
+Genre-to-category-ID mapping per locale. Used internally by catalog() when `category` option is provided.
+
+## Complete Example
+
+```typescript
+import { login, register, refresh, library, catalog } from 'audible-api-ts'
+
+// 1. Auth
+const { loginUrl, session, cookies } = await login('fr')
+// → redirect user to loginUrl with cookies set
+const credentials = await register(authorizationCode, session)
+
+// 2. Library
+const { items } = await library(credentials)
+items.map((book) => {
+  const r = book.rating?.overallDistribution
+  console.log(`${book.title} — ${r?.averageRating?.toFixed(1)}/5 (${r?.numRatings} votes)`)
+  if (book.series) console.log(`  Series: ${book.series.name} #${book.series.position}`)
+  if (book.listeningStatus?.percentComplete) console.log(`  Progress: ${book.listeningStatus.percentComplete}%`)
+})
+
+// 3. Catalog search
+const { items: sf } = await catalog(credentials, {
+  category: 'science-fiction',
+  numResults: 10,
+})
+sf.map((book, i) => console.log(`${i + 1}. ${book.title}`))
+
+// 4. Token refresh
+const fresh = await refresh(credentials)
+```
