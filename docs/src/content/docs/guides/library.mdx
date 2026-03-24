@@ -34,11 +34,9 @@ import { catalog } from 'audible-api-ts'
 
 const { items } = await catalog(credentials, {
   category: 'science-fiction',  // resolved to the correct ID per locale
-  limit: 20,                   // MostVoted is the default sort
+  limit: 20,                   // Relevance is the default sort
 })
 ```
-
-Results are automatically sorted by number of ratings (desc) then average rating (desc).
 
 ### Available Genres
 
@@ -50,11 +48,36 @@ Results are automatically sorted by number of ratings (desc) then average rating
 |--------|------|---------|-------------|
 | `category` | `AudibleGenre` | — | Genre name (resolved per locale) |
 | `categoryId` | `string` | — | Raw Audible category ID (alternative to `category`) |
-| `sortBy` | `string` | `'MostVoted'` | `'MostVoted'`, `'BestSellers'`, `'AvgRating'`, `'Relevance'`, `'ReleaseDate'`, `'-ReleaseDate'`, `'Title'` |
+| `sortBy` | `string` | `'Relevance'` | Sort order (see sort behavior below) |
 | `limit` | `number \| 'all'` | `50` | Max results to return. Use `'all'` to fetch everything |
 | `keywords` | `string` | — | Search term |
 | `author` | `string` | — | Filter by author name |
 | `narrator` | `string` | — | Filter by narrator name |
+
+### Sort Behavior
+
+There are two categories of sorts:
+
+**API sorts (fast)** — single request, returns `limit` items:
+
+| Sort | Description |
+|------|-------------|
+| `'Relevance'` | Default. Audible's relevance ranking |
+| `'BestSellers'` | Best-selling titles |
+| `'AvgRating'` | Highest average rating |
+| `'ReleaseDate'` | Newest releases first |
+| `'-ReleaseDate'` | Oldest releases first |
+| `'Title'` | Alphabetical by title |
+
+**Client sort (slow):**
+
+| Sort | Description |
+|------|-------------|
+| `'MostVoted'` | Fetches ALL pages (up to 1000 items), sorts by number of votes desc then average rating desc, returns `limit` items |
+
+<Aside type="caution">
+  `'MostVoted'` can take **10-60 seconds** on large categories because it must fetch every page from the API before sorting client-side. Prefer API sorts like `'Relevance'` or `'BestSellers'` for fast results.
+</Aside>
 
 <Aside type="tip">
   Use `category` for convenience — genre names work across locales. Use `categoryId` only if you need a specific subcategory not covered by the genre list.

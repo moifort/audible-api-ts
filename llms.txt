@@ -61,7 +61,11 @@ const { items } = await wishlist(credentials)
 
 ### catalog(credentials: AudibleCredentials, options: CatalogOptions): Promise<{ items: AudibleItem[], credentials }>
 
-Search the Audible catalog by category. Default sort is 'MostVoted'. Credentials are auto-refreshed before the call.
+Search the Audible catalog by category. Default sort is 'Relevance'. Credentials are auto-refreshed before the call.
+
+**Sort behavior:**
+- **API sorts (fast)** — single request, returns `limit` items: `'Relevance'` (default), `'BestSellers'`, `'AvgRating'`, `'ReleaseDate'`, `'-ReleaseDate'`, `'Title'`
+- **Client sort (slow):** `'MostVoted'` — fetches ALL pages (up to 1000 items), sorts by votes desc then rating desc, returns `limit` items. Can take 10-60 seconds on large categories.
 
 ```typescript
 import { catalog } from 'audible-api-ts'

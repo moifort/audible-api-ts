@@ -56,10 +56,10 @@ library.map((book) => {
   if (progress) console.log(`  Progress: ${progress}%`)
 })
 
-// Search the catalog for most voted Sci-Fi
+// Search the catalog for Sci-Fi
 const { items: scifi } = await catalog(credentials, {
   category: 'science-fiction',  // genre name, resolved per locale
-  limit: 5,                    // MostVoted is the default sort
+  limit: 5,                    // Relevance is the default sort
 })
 
 scifi.map((book) =>

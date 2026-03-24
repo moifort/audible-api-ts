@@ -119,7 +119,7 @@ items.map((book) =>
 Search the Audible catalog by category with optional filters. Credentials are auto-refreshed before the call.
 
 ```typescript
-// Most voted Science Fiction (default sort)
+// Science Fiction sorted by relevance (default sort)
 const { items } = await catalog(credentials, {
   category: 'science-fiction',
   limit: 20,
@@ -145,13 +145,15 @@ items.map((book, i) => {
 | `credentials` | `AudibleCredentials` | — | Valid credentials |
 | `options.category` | `AudibleGenre` | — | Genre name, resolved per locale |
 | `options.categoryId` | `string` | — | Raw category ID (alternative to `category`) |
-| `options.sortBy` | `string` | `'MostVoted'` | Sort order (see below) |
+| `options.sortBy` | `string` | `'Relevance'` | Sort order (see below) |
 | `options.limit` | `number \| 'all'` | `50` | Max results to return. Use `'all'` to fetch everything |
 | `options.keywords` | `string` | — | Search term filter |
 | `options.author` | `string` | — | Filter by author name |
 | `options.narrator` | `string` | — | Filter by narrator name |
 
-**Sort options:** `'MostVoted'` (default), `'BestSellers'`, `'AvgRating'`, `'Relevance'`, `'ReleaseDate'`, `'-ReleaseDate'`, `'Title'`
+**API sorts (fast)** — single request, returns `limit` items: `'Relevance'` (default), `'BestSellers'`, `'AvgRating'`, `'ReleaseDate'`, `'-ReleaseDate'`, `'Title'`
+
+**Client sort (slow):** `'MostVoted'` — fetches ALL pages (up to 1000 items), sorts by votes desc then rating desc, returns `limit` items. Can take 10-60 seconds on large categories.
 
 **Returns:** `Promise<{ items: AudibleItem[], credentials: AudibleCredentials }>`
 

@@ -218,10 +218,10 @@ type CatalogOptions = {
   category?: AudibleGenre  // genre name, resolved per locale
   categoryId?: string      // or raw category ID
   sortBy?:
-    | 'MostVoted'          // default
+    | 'MostVoted'          // client sort — slow, fetches all pages
     | 'BestSellers'
     | 'AvgRating'
-    | 'Relevance'
+    | 'Relevance'          // default
     | 'ReleaseDate'
     | '-ReleaseDate'
     | 'Title'
@@ -234,9 +234,16 @@ type CatalogOptions = {
 
 **Example:**
 ```typescript
-// Most voted Science Fiction (default)
+// Science Fiction sorted by relevance (default)
 await catalog(credentials, {
   category: 'science-fiction',
+  limit: 20,
+})
+
+// Most voted — ⚠️ slow, fetches all pages then sorts client-side (10-60s)
+await catalog(credentials, {
+  category: 'science-fiction',
+  sortBy: 'MostVoted',
   limit: 20,
 })
 
