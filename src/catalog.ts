@@ -75,12 +75,11 @@ export const catalog = async (credentials: AudibleCredentials, options: CatalogO
 
   if (sortBy === 'MostVoted') {
     const MAX_PAGES = 20
-    const maxPages = limit === 'all' ? MAX_PAGES : Math.ceil(limit / PAGE_SIZE)
     const { items: allItems, credentials: fresh } = await fetchCatalogPages(
       credentials,
       categoryId,
       options,
-      maxPages,
+      MAX_PAGES,
     )
 
     const sorted = orderBy(
@@ -104,7 +103,7 @@ export const catalog = async (credentials: AudibleCredentials, options: CatalogO
     {
       category_id: categoryId,
       products_sort_by: sortBy,
-      num_results: String(limit === 'all' ? PAGE_SIZE : limit),
+      num_results: String(limit === 'all' ? PAGE_SIZE : Math.min(limit, PAGE_SIZE)),
       page: '1',
       response_groups: CATALOG_RESPONSE_GROUPS,
       ...(options.keywords ? { keywords: options.keywords } : {}),

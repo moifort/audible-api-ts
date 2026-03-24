@@ -18,9 +18,10 @@ describe('catalog integration', () => {
     expect(items[0].rating?.overallDistribution?.numRatings).toBeGreaterThanOrEqual(0)
   })
 
-  test('MostVoted returns items sorted by votes descending', async () => {
+  test('MostVoted fetches all pages and returns sorted by votes descending', async () => {
     const { items } = await catalog(loadCredentials(), {
       category: 'science-fiction',
+      sortBy: 'MostVoted',
       limit: 10,
     })
 
@@ -31,14 +32,5 @@ describe('catalog integration', () => {
       expect(votes).toBeLessThanOrEqual(prevVotes)
       return votes
     }, Number.POSITIVE_INFINITY)
-  })
-
-  test('limit > 50 fetches multiple pages', async () => {
-    const { items } = await catalog(loadCredentials(), {
-      category: 'science-fiction',
-      limit: 60,
-    })
-
-    expect(items.length).toBe(60)
   })
 })

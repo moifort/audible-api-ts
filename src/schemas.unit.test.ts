@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { audibleRawItemSchema } from '../src/schemas'
+import { audibleRawItemSchema } from './schemas'
 
 describe('audibleRawItemSchema', () => {
   test('parses a minimal item', () => {

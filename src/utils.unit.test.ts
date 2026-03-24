@@ -1,10 +1,9 @@
 import { describe, expect, test } from 'bun:test'
 import { Buffer } from 'node:buffer'
-import { base64nopad, base64url, toHexString } from '../src/utils'
+import { base64nopad, base64url, toHexString } from './utils'
 
 describe('base64url', () => {
   test('replaces + with - and / with _ and strips padding', () => {
-    // Create a buffer that produces +, / and = in standard base64
     const buffer = Buffer.from([0xfb, 0xef, 0xbe])
     const result = base64url(buffer)
 
@@ -20,7 +19,6 @@ describe('base64url', () => {
 
 describe('base64nopad', () => {
   test('strips trailing = padding', () => {
-    // "A" in base64 is "QQ==" — should become "QQ"
     const buffer = Buffer.from('A')
     const result = base64nopad(buffer)
 

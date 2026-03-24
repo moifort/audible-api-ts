@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
-import { AUDIBLE_LOCALES } from '../src/locales'
-import type { AudibleLocale } from '../src/types'
+import { AUDIBLE_LOCALES } from './locales'
+import type { AudibleLocale } from './types'
 
 describe('AUDIBLE_LOCALES', () => {
   const allLocales: AudibleLocale[] = [
@@ -20,12 +20,12 @@ describe('AUDIBLE_LOCALES', () => {
     expect(Object.keys(AUDIBLE_LOCALES)).toHaveLength(10)
   })
 
-  for (const locale of allLocales) {
+  allLocales.map((locale) =>
     test(`${locale} has domain, marketplaceId, and countryCode`, () => {
       const config = AUDIBLE_LOCALES[locale]
       expect(config.domain).toBeTruthy()
       expect(config.marketplaceId).toBeTruthy()
       expect(config.countryCode).toBeTruthy()
-    })
-  }
+    }),
+  )
 })

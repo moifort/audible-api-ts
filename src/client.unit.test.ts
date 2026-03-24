@@ -1,9 +1,9 @@
 import { describe, expect, test } from 'bun:test'
-import { login } from '../src/client'
+import { login } from './client'
 
 describe('login', () => {
   test('returns a valid login URL for the "fr" locale', async () => {
-    const { loginUrl, session, cookies } = await login('fr')
+    const { loginUrl } = await login('fr')
 
     expect(loginUrl).toContain('https://www.amazon.fr/ap/signin')
     expect(loginUrl).toContain('openid.oa2.response_type=code')
