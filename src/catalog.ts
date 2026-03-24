@@ -70,7 +70,7 @@ export const catalog = async (credentials: AudibleCredentials, options: CatalogO
     throw new Error('Either "category" or "categoryId" must be provided')
   }
 
-  const sortBy = options.sortBy ?? 'MostVoted'
+  const sortBy = options.sortBy ?? 'Relevance'
   const limit = options.limit ?? 50
 
   if (sortBy === 'MostVoted') {
