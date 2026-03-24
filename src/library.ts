@@ -1,7 +1,8 @@
 import { audibleFetch, fetchAllPages } from './fetch.js'
 import type { AudibleCredentials } from './types.js'
 
-const RESPONSE_GROUPS = 'product_details,contributors,media,product_attrs,listening_status,series'
+const RESPONSE_GROUPS =
+  'product_details,contributors,media,product_attrs,listening_status,series,rating,category_ladders,product_desc,product_extended_attrs,relationships'
 
 /**
  * Fetch the user's entire Audible library with automatic pagination.

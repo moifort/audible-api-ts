@@ -1,39 +1,10 @@
 import { orderBy } from 'lodash-es'
-import { audibleFetch } from './fetch.js'
-import { audibleCatalogItemSchema } from './schemas.js'
-import type { AudibleCredentials, CatalogItem, CatalogOptions } from './types.js'
+import { audibleFetch, toAudibleItem } from './fetch.js'
+import { audibleRawItemSchema } from './schemas.js'
+import type { AudibleCredentials, AudibleItem, CatalogOptions } from './types.js'
 
 const CATALOG_RESPONSE_GROUPS =
-  'product_details,contributors,media,product_attrs,rating,category_ladders,series'
-
-const parseCatalogItems = (items: unknown[]): CatalogItem[] =>
-  items.map((raw) => {
-    const item = audibleCatalogItemSchema.parse(raw)
-    return {
-      asin: item.asin,
-      title: item.title,
-      authors: item.authors.map(({ name }) => name),
-      narrators: item.narrators.map(({ name }) => name),
-      durationMinutes: item.runtime_length_min,
-      publisher: item.publisher_name,
-      language: item.language,
-      releaseDate: item.release_date ? new Date(item.release_date) : undefined,
-      coverUrl: item.product_images?.['500'] ?? item.product_images?.['252'],
-      series: item.series[0]
-        ? {
-            name: item.series[0].title,
-            position: item.series[0].sequence ? Number(item.series[0].sequence) : undefined,
-          }
-        : undefined,
-      rating: item.rating?.overall_distribution
-        ? {
-            averageRating: item.rating.overall_distribution.average_rating,
-            numRatings: item.rating.overall_distribution.num_ratings,
-            numReviews: item.rating.num_reviews,
-          }
-        : undefined,
-    }
-  })
+  'product_details,contributors,media,product_attrs,rating,category_ladders,series,product_desc,product_extended_attrs,relationships'
 
 const extractItems = (response: Record<string, unknown>): unknown[] =>
   Array.isArray(response.products)
@@ -68,9 +39,12 @@ export const fetchCatalog = async (credentials: AudibleCredentials, options: Cat
     query,
   )
 
-  const items = orderBy(
-    parseCatalogItems(extractItems(response)),
-    [({ rating }) => rating?.numRatings ?? 0, ({ rating }) => rating?.averageRating ?? 0],
+  const items: AudibleItem[] = orderBy(
+    extractItems(response).map((raw) => toAudibleItem(audibleRawItemSchema.parse(raw))),
+    [
+      ({ rating }) => rating?.overallDistribution?.numRatings ?? 0,
+      ({ rating }) => rating?.overallDistribution?.averageRating ?? 0,
+    ],
     ['desc', 'desc'],
   )
 

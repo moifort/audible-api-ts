@@ -10,13 +10,17 @@ export { AUDIBLE_LOCALES } from './locales.js'
 
 // Types
 export type {
+  AudibleCategory,
   AudibleCookie,
   AudibleCredentials,
   AudibleItem,
   AudibleLocale,
   AudibleRating,
+  AudibleRelationship,
   AuthSession,
-  CatalogItem,
   CatalogOptions,
+  CategoryLadder,
+  ListeningStatus,
   LocaleConfig,
+  RatingDistribution,
 } from './types.js'

@@ -61,7 +61,7 @@ describe('audibleRawItemSchema', () => {
     expect(result.publisher_name).toBeUndefined()
     expect(result.language).toBeUndefined()
     expect(result.release_date).toBeUndefined()
-    expect(result.product_images).toBeUndefined()
+    expect(result.product_images).toEqual({})
     expect(result.series).toEqual([])
     expect(result.listening_status).toBeUndefined()
   })
