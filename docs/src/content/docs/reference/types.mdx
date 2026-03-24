@@ -217,29 +217,41 @@ Options for `fetchCatalog()`.
 type CatalogOptions = {
   category?: AudibleGenre  // genre name, resolved per locale
   categoryId?: string      // or raw category ID
-  sortBy?: 'BestSellers' | 'AvgRating' | 'Relevance'
-         | 'ReleaseDate' | '-ReleaseDate' | 'Title'
-  pages?: number           // multi-page fetch (default 1, max 5)
+  sortBy?:
+    | 'MostVoted'          // default — fetches all pages, sorts by votes
+    | 'BestSellers'        // Audible API sort (single page)
+    | 'AvgRating'
+    | 'Relevance'
+    | 'ReleaseDate'
+    | '-ReleaseDate'
+    | 'Title'
+  maxPages?: number        // max pages for MostVoted (default 10)
   keywords?: string
   author?: string
   narrator?: string
-  numResults?: number      // default 50, max 50
-  page?: number            // default 1 (single-page mode)
+  numResults?: number      // default 50
+  page?: number            // page number (for non-MostVoted sorts)
 }
 ```
 
 **Example:**
 ```typescript
-// Using genre name (recommended)
+// Most voted Science Fiction (default)
 await fetchCatalog(credentials, {
   category: 'science-fiction',
-  pages: 3,
   numResults: 20,
 })
 
-// Using raw category ID
+// Latest releases (Audible API sort, single page)
+await fetchCatalog(credentials, {
+  category: 'science-fiction',
+  sortBy: '-ReleaseDate',
+})
+
+// Raw category ID with keyword search
 await fetchCatalog(credentials, {
   categoryId: '21229020031',
+  sortBy: 'Relevance',
   keywords: 'space opera',
 })
 ```

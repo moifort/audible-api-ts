@@ -119,10 +119,9 @@ items.map((book) =>
 Search the Audible catalog by category with optional filters. Results are automatically sorted by number of ratings (desc) then average rating (desc).
 
 ```typescript
-// Using genre name (recommended)
+// Most voted Science Fiction (default — fetches all pages, sorts by votes)
 const { items } = await fetchCatalog(credentials, {
   category: 'science-fiction',
-  pages: 3,
   numResults: 20,
 })
 
@@ -146,15 +145,15 @@ items.map((book, i) => {
 | `credentials` | `AudibleCredentials` | — | Valid credentials |
 | `options.category` | `AudibleGenre` | — | Genre name, resolved per locale |
 | `options.categoryId` | `string` | — | Raw category ID (alternative to `category`) |
-| `options.sortBy` | `string` | `'Relevance'` | Sort order (see below) |
-| `options.pages` | `number` | `1` | Pages to fetch (max 5). When > 1, fetches across multiple sort orders |
+| `options.sortBy` | `string` | `'MostVoted'` | Sort order (see below) |
+| `options.maxPages` | `number` | `10` | Max pages for `MostVoted` (50 items/page) |
 | `options.keywords` | `string` | — | Search term filter |
 | `options.author` | `string` | — | Filter by author name |
 | `options.narrator` | `string` | — | Filter by narrator name |
-| `options.numResults` | `number` | `50` | Number of results to return (max 50) |
-| `options.page` | `number` | `1` | Page number (single-page mode) |
+| `options.numResults` | `number` | `50` | Number of results to return |
+| `options.page` | `number` | `1` | Page number (for non-MostVoted sorts) |
 
-**Sort options:** `'BestSellers'`, `'AvgRating'`, `'Relevance'`, `'ReleaseDate'`, `'-ReleaseDate'`, `'Title'`
+**Sort options:** `'MostVoted'` (default — fetches all pages, sorts by votes client-side), `'BestSellers'`, `'AvgRating'`, `'Relevance'`, `'ReleaseDate'`, `'-ReleaseDate'`, `'Title'`
 
 **Returns:** `Promise<{ items: AudibleItem[], credentials: AudibleCredentials }>`
 

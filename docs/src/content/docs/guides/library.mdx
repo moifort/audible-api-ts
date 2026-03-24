@@ -34,8 +34,7 @@ import { fetchCatalog } from 'audible-api-ts'
 
 const { items } = await fetchCatalog(credentials, {
   category: 'science-fiction',  // resolved to the correct ID per locale
-  pages: 3,                     // multi-page for comprehensive popularity ranking
-  numResults: 20,
+  numResults: 20,               // MostVoted is the default — fetches all pages, sorts by votes
 })
 ```
 
@@ -51,8 +50,8 @@ Results are automatically sorted by number of ratings (desc) then average rating
 |--------|------|---------|-------------|
 | `category` | `AudibleGenre` | — | Genre name (resolved per locale) |
 | `categoryId` | `string` | — | Raw Audible category ID (alternative to `category`) |
-| `sortBy` | `string` | `'Relevance'` | `'BestSellers'`, `'AvgRating'`, `'Relevance'`, `'ReleaseDate'`, `'-ReleaseDate'`, `'Title'` |
-| `pages` | `number` | `1` | Number of pages to fetch (max 5). When > 1, fetches across multiple sort orders for comprehensive results |
+| `sortBy` | `string` | `'MostVoted'` | `'MostVoted'` (fetches all pages, sorts by votes), `'BestSellers'`, `'AvgRating'`, `'Relevance'`, `'ReleaseDate'`, `'-ReleaseDate'`, `'Title'` |
+| `maxPages` | `number` | `10` | Max pages to fetch for `MostVoted` sort (50 items/page) |
 | `keywords` | `string` | — | Search term |
 | `author` | `string` | — | Filter by author name |
 | `narrator` | `string` | — | Filter by narrator name |
@@ -268,7 +267,6 @@ import { fetchCatalog } from 'audible-api-ts'
 
 const { items } = await fetchCatalog(credentials, {
   category: 'science-fiction',
-  pages: 3,
   numResults: 10,
 })
 

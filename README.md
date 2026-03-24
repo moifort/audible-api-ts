@@ -74,11 +74,17 @@ Use genre names instead of opaque category IDs — the library resolves them per
 ```typescript
 import { fetchCatalog } from 'audible-api-ts'
 
-// Top Science Fiction by popularity (multi-page for comprehensive results)
+// Top Science Fiction by number of votes (fetches all pages, sorts client-side)
 const { items } = await fetchCatalog(credentials, {
-  category: 'science-fiction',  // resolved per locale, no ID needed
-  pages: 3,                     // fetch 3 pages × 3 sorts for best coverage
+  category: 'science-fiction',     // resolved per locale, no ID needed
+  sortBy: 'MostVoted',            // default — fetches all pages, sorts by votes
   numResults: 10,
+})
+
+// Or use Audible's built-in sort (single page, faster)
+const { items: latest } = await fetchCatalog(credentials, {
+  category: 'science-fiction',
+  sortBy: 'ReleaseDate',
 })
 
 items.map((book) => {

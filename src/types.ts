@@ -138,13 +138,20 @@ export type AudibleItem = {
 export type CatalogOptions = {
   category?: import('./categories.js').AudibleGenre
   categoryId?: string
-  sortBy?: 'BestSellers' | 'AvgRating' | 'Relevance' | 'ReleaseDate' | '-ReleaseDate' | 'Title'
+  sortBy?:
+    | 'MostVoted'
+    | 'BestSellers'
+    | 'AvgRating'
+    | 'Relevance'
+    | 'ReleaseDate'
+    | '-ReleaseDate'
+    | 'Title'
   keywords?: string
   author?: string
   narrator?: string
   numResults?: number
   page?: number
-  pages?: number
+  maxPages?: number
 }
 
 /** PKCE auth session — returned by generateLoginUrl, passed back to registerDevice */
