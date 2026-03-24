@@ -14,21 +14,21 @@ This gives you long-lived credentials that can be refreshed without re-authentic
 ## The Flow
 
 <Steps>
-1. **Generate a login URL** — `generateLoginUrl()` creates a PKCE challenge, a device serial, and the Amazon login URL with the correct parameters for the chosen locale.
+1. **Generate a login URL** — `login()` creates a PKCE challenge, a device serial, and the Amazon login URL with the correct parameters for the chosen locale.
 
 2. **User logs in** — Redirect the user to the login URL in a browser. They sign in with their Amazon/Audible account.
 
 3. **Extract the authorization code** — After login, Amazon redirects to a callback URL. Extract the `openid.oa2.authorization_code` parameter from the redirect URL.
 
-4. **Register the device** — `registerDevice()` exchanges the authorization code for permanent credentials: access token, refresh token, ADP token, and device private key.
+4. **Register the device** — `register()` exchanges the authorization code for permanent credentials: access token, refresh token, ADP token, and device private key.
 </Steps>
 
 ## Step 1: Generate Login URL
 
 ```typescript
-import { generateLoginUrl } from 'audible-api-ts'
+import { login } from 'audible-api-ts'
 
-const { loginUrl, session, cookies } = await generateLoginUrl('fr')
+const { loginUrl, session, cookies } = await login('fr')
 ```
 
 The function returns three things:
@@ -64,18 +64,18 @@ Extract the `openid.oa2.authorization_code` query parameter from this URL.
 ## Step 3: Register Device
 
 ```typescript
-import { registerDevice } from 'audible-api-ts'
+import { register } from 'audible-api-ts'
 
-const credentials = await registerDevice(authorizationCode, session)
+const credentials = await register(authorizationCode, session)
 ```
 
 <Aside type="caution">
-  The `session` object must be the exact same one returned by `generateLoginUrl()`. It contains the PKCE code verifier needed to complete the exchange.
+  The `session` object must be the exact same one returned by `login()`. It contains the PKCE code verifier needed to complete the exchange.
 </Aside>
 
 ### Storing Credentials
 
-`registerDevice` returns an `AudibleCredentials` object. **You are responsible for storing it** — the library is stateless by design.
+`register` returns an `AudibleCredentials` object. **You are responsible for storing it** — the library is stateless by design.
 
 ```typescript
 // Example: save to a JSON file
@@ -106,10 +106,10 @@ The credentials contain:
 ## Complete Example
 
 ```typescript
-import { generateLoginUrl, registerDevice, fetchLibrary } from 'audible-api-ts'
+import { login, register, library } from 'audible-api-ts'
 
 // 1. Generate login URL
-const { loginUrl, session, cookies } = await generateLoginUrl('com')
+const { loginUrl, session, cookies } = await login('com')
 console.log('Open this URL:', loginUrl)
 console.log('Set these cookies first:', cookies)
 
@@ -118,10 +118,10 @@ console.log('Set these cookies first:', cookies)
 const authorizationCode = '...'
 
 // 3. Register device
-const credentials = await registerDevice(authorizationCode, session)
+const credentials = await register(authorizationCode, session)
 console.log('Authenticated! Token expires at:', credentials.expiresAt)
 
 // 4. Use the credentials
-const { items } = await fetchLibrary(credentials)
+const { items } = await library(credentials)
 console.log(`Library contains ${items.length} audiobooks`)
 ```

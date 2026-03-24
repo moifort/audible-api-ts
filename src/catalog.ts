@@ -63,7 +63,7 @@ const fetchAllCatalogPages = async (
  *
  * @returns Catalog items sorted by the chosen criteria and the credentials
  */
-export const fetchCatalog = async (credentials: AudibleCredentials, options: CatalogOptions) => {
+export const catalog = async (credentials: AudibleCredentials, options: CatalogOptions) => {
   const categoryId = options.category
     ? resolveGenreId(options.category, credentials.locale)
     : options.categoryId

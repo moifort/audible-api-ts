@@ -14,9 +14,9 @@ When the token expires, API calls will fail with a `401` error.
 ## Refreshing the Token
 
 ```typescript
-import { refreshAccessToken } from 'audible-api-ts'
+import { refresh } from 'audible-api-ts'
 
-const updatedCredentials = await refreshAccessToken(credentials)
+const updatedCredentials = await refresh(credentials)
 
 // The updated credentials have a new accessToken and expiresAt
 console.log('New expiration:', updatedCredentials.expiresAt)
@@ -25,7 +25,7 @@ console.log('New expiration:', updatedCredentials.expiresAt)
 The `refreshToken` is long-lived and doesn't expire in normal use.
 
 <Aside type="tip">
-  `refreshAccessToken` returns a new credentials object — it does **not** mutate the original. Remember to persist the updated credentials.
+  `refresh` returns a new credentials object — it does **not** mutate the original. Remember to persist the updated credentials.
 </Aside>
 
 ## Auto-Refresh Pattern
@@ -33,13 +33,13 @@ The `refreshToken` is long-lived and doesn't expire in normal use.
 Here's a common pattern to automatically refresh before making API calls:
 
 ```typescript
-import { refreshAccessToken, fetchLibrary } from 'audible-api-ts'
+import { refresh, library } from 'audible-api-ts'
 import type { AudibleCredentials } from 'audible-api-ts'
 
 const ensureFreshCredentials = async (credentials: AudibleCredentials) => {
   const bufferMs = 5 * 60 * 1000 // 5 minutes buffer
   if (credentials.expiresAt.getTime() - Date.now() < bufferMs) {
-    return refreshAccessToken(credentials)
+    return refresh(credentials)
   }
   return credentials
 }
@@ -48,7 +48,7 @@ const ensureFreshCredentials = async (credentials: AudibleCredentials) => {
 let creds = loadCredentialsFromStorage()
 creds = await ensureFreshCredentials(creds)
 
-const { items } = await fetchLibrary(creds)
+const { items } = await library(creds)
 saveCredentialsToStorage(creds)
 ```
 

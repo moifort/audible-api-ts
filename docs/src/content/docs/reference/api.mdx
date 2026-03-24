@@ -5,12 +5,12 @@ description: Complete API reference for all exported functions
 
 ## Authentication
 
-### `generateLoginUrl(locale)`
+### `login(locale)`
 
 Generate a login URL for the Audible PKCE OAuth flow.
 
 ```typescript
-const { loginUrl, session, cookies } = await generateLoginUrl('fr')
+const { loginUrl, session, cookies } = await login('fr')
 ```
 
 **Parameters:**
@@ -22,12 +22,12 @@ const { loginUrl, session, cookies } = await generateLoginUrl('fr')
 
 ---
 
-### `registerDevice(authorizationCode, session)`
+### `register(authorizationCode, session)`
 
 Complete device registration using the authorization code from the OAuth callback.
 
 ```typescript
-const credentials = await registerDevice(code, session)
+const credentials = await register(code, session)
 console.log(`Authenticated! Expires: ${credentials.expiresAt}`)
 ```
 
@@ -35,7 +35,7 @@ console.log(`Authenticated! Expires: ${credentials.expiresAt}`)
 | Name | Type | Description |
 |------|------|-------------|
 | `authorizationCode` | `string` | The code from the OAuth callback URL |
-| `session` | `AuthSession` | The session returned by `generateLoginUrl()` |
+| `session` | `AuthSession` | The session returned by `login()` |
 
 **Returns:** `Promise<AudibleCredentials>`
 
@@ -43,12 +43,12 @@ console.log(`Authenticated! Expires: ${credentials.expiresAt}`)
 
 ---
 
-### `refreshAccessToken(credentials)`
+### `refresh(credentials)`
 
 Refresh an expired access token.
 
 ```typescript
-const updated = await refreshAccessToken(credentials)
+const updated = await refresh(credentials)
 console.log(`New expiration: ${updated.expiresAt}`)
 ```
 
@@ -65,12 +65,12 @@ console.log(`New expiration: ${updated.expiresAt}`)
 
 ## Data Fetching
 
-### `fetchLibrary(credentials)`
+### `library(credentials)`
 
 Fetch the user's entire Audible library with automatic pagination.
 
 ```typescript
-const { items } = await fetchLibrary(credentials)
+const { items } = await library(credentials)
 
 // Each item has full details: rating, categories, listening progress, etc.
 items.map((book) => {
@@ -93,12 +93,12 @@ Pagination is automatic — all items are fetched (50 per page).
 
 ---
 
-### `fetchWishlist(credentials)`
+### `wishlist(credentials)`
 
 Fetch the user's entire Audible wishlist with automatic pagination.
 
 ```typescript
-const { items } = await fetchWishlist(credentials)
+const { items } = await wishlist(credentials)
 
 items.map((book) =>
   console.log(`${book.title} — ${book.durationMinutes} min — ${book.publisher}`)
@@ -114,19 +114,19 @@ items.map((book) =>
 
 ---
 
-### `fetchCatalog(credentials, options)`
+### `catalog(credentials, options)`
 
 Search the Audible catalog by category with optional filters. Results are automatically sorted by number of ratings (desc) then average rating (desc).
 
 ```typescript
 // Most voted Science Fiction (default — fetches all pages, sorts by votes)
-const { items } = await fetchCatalog(credentials, {
+const { items } = await catalog(credentials, {
   category: 'science-fiction',
   numResults: 20,
 })
 
 // Or using raw category ID
-const { items: items2 } = await fetchCatalog(credentials, {
+const { items: items2 } = await catalog(credentials, {
   categoryId: '21229020031',
   numResults: 20,
 })
@@ -159,16 +159,16 @@ items.map((book, i) => {
 
 ---
 
-### `verifyConnection(credentials)`
+### `verify(credentials)`
 
 Verify that credentials are valid by making a minimal API call.
 
 ```typescript
 try {
-  await verifyConnection(credentials)
+  await verify(credentials)
   console.log('Connected')
 } catch {
-  console.log('Credentials expired — call refreshAccessToken()')
+  console.log('Credentials expired — call refresh()')
 }
 ```
 

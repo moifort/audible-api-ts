@@ -34,15 +34,15 @@ Requires Node.js 18+ (for native `fetch` and `crypto`).
 ## Quick Start
 
 ```typescript
-import { generateLoginUrl, registerDevice, fetchLibrary } from 'audible-api-ts'
+import { login, register, library } from 'audible-api-ts'
 
 // 1. Authenticate
-const { loginUrl, session, cookies } = await generateLoginUrl('com')
+const { loginUrl, session, cookies } = await login('com')
 // → Redirect user to loginUrl (set cookies first)
-const credentials = await registerDevice(authorizationCode, session)
+const credentials = await register(authorizationCode, session)
 
 // 2. Fetch library
-const { items } = await fetchLibrary(credentials)
+const { items } = await library(credentials)
 
 items.map((book) => {
   console.log(`${book.title} by ${book.authors.join(', ')}`)
@@ -72,17 +72,17 @@ Dune by Frank Herbert
 Use genre names instead of opaque category IDs — the library resolves them per locale:
 
 ```typescript
-import { fetchCatalog } from 'audible-api-ts'
+import { catalog } from 'audible-api-ts'
 
 // Top Science Fiction by number of votes (fetches all pages, sorts client-side)
-const { items } = await fetchCatalog(credentials, {
+const { items } = await catalog(credentials, {
   category: 'science-fiction',     // resolved per locale, no ID needed
   sortBy: 'MostVoted',            // default — fetches all pages, sorts by votes
   numResults: 10,
 })
 
 // Or use Audible's built-in sort (single page, faster)
-const { items: latest } = await fetchCatalog(credentials, {
+const { items: latest } = await catalog(credentials, {
   category: 'science-fiction',
   sortBy: 'ReleaseDate',
 })
@@ -106,13 +106,13 @@ Available genres: `'science-fiction'`, `'fantasy'`, `'thriller'`, `'romance'`, `
 
 | Function | Description |
 |----------|-------------|
-| `generateLoginUrl(locale)` | Generate PKCE login URL + session + cookies |
-| `registerDevice(code, session)` | Exchange auth code for credentials |
-| `refreshAccessToken(credentials)` | Refresh an expired access token |
-| `fetchLibrary(credentials)` | Fetch all library audiobooks |
-| `fetchWishlist(credentials)` | Fetch all wishlist audiobooks |
-| `fetchCatalog(credentials, options)` | Search catalog by category with sorting |
-| `verifyConnection(credentials)` | Check if credentials are valid |
+| `login(locale)` | Generate PKCE login URL + session + cookies |
+| `register(code, session)` | Exchange auth code for credentials |
+| `refresh(credentials)` | Refresh an expired access token |
+| `library(credentials)` | Fetch all library audiobooks |
+| `wishlist(credentials)` | Fetch all wishlist audiobooks |
+| `catalog(credentials, options)` | Search catalog by category with sorting |
+| `verify(credentials)` | Check if credentials are valid |
 
 See the **[full documentation](https://moifort.github.io/audible-api-ts)** for guides and API reference.
 

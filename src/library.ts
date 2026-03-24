@@ -9,7 +9,7 @@ const RESPONSE_GROUPS =
  *
  * @returns All library items and the (potentially refreshed) credentials
  */
-export const fetchLibrary = async (credentials: AudibleCredentials) =>
+export const library = async (credentials: AudibleCredentials) =>
   fetchAllPages('/library', credentials, RESPONSE_GROUPS)
 
 /**
@@ -17,7 +17,7 @@ export const fetchLibrary = async (credentials: AudibleCredentials) =>
  *
  * @returns All wishlist items and the (potentially refreshed) credentials
  */
-export const fetchWishlist = async (credentials: AudibleCredentials) =>
+export const wishlist = async (credentials: AudibleCredentials) =>
   fetchAllPages('/wishlist', credentials, RESPONSE_GROUPS)
 
 /**
@@ -25,7 +25,7 @@ export const fetchWishlist = async (credentials: AudibleCredentials) =>
  *
  * @throws If credentials are invalid or expired
  */
-export const verifyConnection = async (credentials: AudibleCredentials) => {
+export const verify = async (credentials: AudibleCredentials) => {
   await audibleFetch<Record<string, unknown>>('/library', credentials, {
     num_results: '1',
     page: '1',

@@ -1,9 +1,9 @@
 import { describe, expect, test } from 'bun:test'
-import { generateLoginUrl } from '../src/client'
+import { login } from '../src/client'
 
-describe('generateLoginUrl', () => {
+describe('login', () => {
   test('returns a valid login URL for the "fr" locale', async () => {
-    const { loginUrl, session, cookies } = await generateLoginUrl('fr')
+    const { loginUrl, session, cookies } = await login('fr')
 
     expect(loginUrl).toContain('https://www.amazon.fr/ap/signin')
     expect(loginUrl).toContain('openid.oa2.response_type=code')
@@ -13,7 +13,7 @@ describe('generateLoginUrl', () => {
   })
 
   test('returns a valid login URL for the "com" locale', async () => {
-    const { loginUrl } = await generateLoginUrl('com')
+    const { loginUrl } = await login('com')
 
     expect(loginUrl).toContain('https://www.amazon.com/ap/signin')
     expect(loginUrl).toContain('amzn_audible_ios_us')
@@ -21,7 +21,7 @@ describe('generateLoginUrl', () => {
   })
 
   test('returns a session with correct locale', async () => {
-    const { session } = await generateLoginUrl('de')
+    const { session } = await login('de')
 
     expect(session.locale).toBe('de')
     expect(session.codeVerifier).toBeTruthy()
@@ -30,18 +30,16 @@ describe('generateLoginUrl', () => {
   })
 
   test('returns 3 cookies with correct domain', async () => {
-    const { cookies } = await generateLoginUrl('co.uk')
+    const { cookies } = await login('co.uk')
 
     expect(cookies).toHaveLength(3)
     expect(cookies.map(({ name }) => name)).toEqual(['frc', 'map-md', 'amzn-app-id'])
-    for (const cookie of cookies) {
-      expect(cookie.domain).toBe('.amazon.co.uk')
-    }
+    cookies.map((cookie) => expect(cookie.domain).toBe('.amazon.co.uk'))
   })
 
   test('generates unique sessions on each call', async () => {
-    const a = await generateLoginUrl('fr')
-    const b = await generateLoginUrl('fr')
+    const a = await login('fr')
+    const b = await login('fr')
 
     expect(a.session.serial).not.toBe(b.session.serial)
     expect(a.session.codeVerifier).not.toBe(b.session.codeVerifier)

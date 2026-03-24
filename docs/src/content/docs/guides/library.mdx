@@ -8,9 +8,9 @@ import { Aside } from '@astrojs/starlight/components';
 ## Fetching the Library
 
 ```typescript
-import { fetchLibrary } from 'audible-api-ts'
+import { library } from 'audible-api-ts'
 
-const { items, credentials } = await fetchLibrary(credentials)
+const { items, credentials } = await library(credentials)
 ```
 
 This fetches **all** audiobooks in the user's library. Pagination is handled automatically (50 items per page).
@@ -18,9 +18,9 @@ This fetches **all** audiobooks in the user's library. Pagination is handled aut
 ## Fetching the Wishlist
 
 ```typescript
-import { fetchWishlist } from 'audible-api-ts'
+import { wishlist } from 'audible-api-ts'
 
-const { items, credentials } = await fetchWishlist(credentials)
+const { items, credentials } = await wishlist(credentials)
 ```
 
 Same API, same response shape — just a different data source.
@@ -30,9 +30,9 @@ Same API, same response shape — just a different data source.
 Use genre names instead of opaque category IDs — the library resolves them per locale:
 
 ```typescript
-import { fetchCatalog } from 'audible-api-ts'
+import { catalog } from 'audible-api-ts'
 
-const { items } = await fetchCatalog(credentials, {
+const { items } = await catalog(credentials, {
   category: 'science-fiction',  // resolved to the correct ID per locale
   numResults: 20,               // MostVoted is the default — fetches all pages, sorts by votes
 })
@@ -118,7 +118,7 @@ type AudibleItem = {
 ### Display books with full details
 
 ```typescript
-const { items } = await fetchLibrary(credentials)
+const { items } = await library(credentials)
 
 items.map((book) => {
   const rating = book.rating?.overallDistribution
@@ -153,7 +153,7 @@ Primal Hunter — Primal Hunter, Tome 4
 ```typescript
 import { orderBy } from 'lodash-es'
 
-const { items } = await fetchLibrary(credentials)
+const { items } = await library(credentials)
 
 const topRated = orderBy(
   items.filter((book) => book.rating?.overallDistribution),
@@ -178,7 +178,7 @@ topRated.map((book, i) => {
 ### Listening progress and stats
 
 ```typescript
-const { items } = await fetchLibrary(credentials)
+const { items } = await library(credentials)
 
 const finished = items.filter((book) => book.listeningStatus?.finishedAt)
 const inProgress = items.filter(
@@ -215,7 +215,7 @@ Total duration: 2156 hours
 ### Filter by category
 
 ```typescript
-const { items } = await fetchLibrary(credentials)
+const { items } = await library(credentials)
 
 const sciFi = items.filter((book) =>
   book.categories.some((ladder) =>
@@ -263,9 +263,9 @@ Fondation: 7 books
 ### Catalog: bestsellers by category
 
 ```typescript
-import { fetchCatalog } from 'audible-api-ts'
+import { catalog } from 'audible-api-ts'
 
-const { items } = await fetchCatalog(credentials, {
+const { items } = await catalog(credentials, {
   category: 'science-fiction',
   numResults: 10,
 })
@@ -289,7 +289,7 @@ items.map((book, i) => {
 ### Catalog: search by keyword
 
 ```typescript
-const { items } = await fetchCatalog(credentials, {
+const { items } = await catalog(credentials, {
   category: 'science-fiction',
   keywords: 'robot',
   numResults: 5,
@@ -311,10 +311,10 @@ Un océan de rouille — Christopher Robert Cargill — french
 Before fetching data, you can verify that credentials are still valid:
 
 ```typescript
-import { verifyConnection } from 'audible-api-ts'
+import { verify } from 'audible-api-ts'
 
 try {
-  await verifyConnection(credentials)
+  await verify(credentials)
   console.log('Credentials are valid')
 } catch {
   console.log('Credentials are invalid or expired')
@@ -322,5 +322,5 @@ try {
 ```
 
 <Aside type="tip">
-  `verifyConnection` makes a minimal API call (1 item, 1 page) to check that the credentials work. Use it to show connection status in your UI without fetching the full library.
+  `verify` makes a minimal API call (1 item, 1 page) to check that the credentials work. Use it to show connection status in your UI without fetching the full library.
 </Aside>

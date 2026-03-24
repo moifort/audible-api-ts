@@ -27,16 +27,16 @@ audible-api-ts supports all 10 Audible marketplaces:
 Pass the locale when generating the login URL:
 
 ```typescript
-import { generateLoginUrl } from 'audible-api-ts'
+import { login } from 'audible-api-ts'
 
 // French marketplace
-const fr = await generateLoginUrl('fr')
+const fr = await login('fr')
 
 // US marketplace
-const us = await generateLoginUrl('com')
+const us = await login('com')
 
 // Japanese marketplace
-const jp = await generateLoginUrl('co.jp')
+const jp = await login('co.jp')
 ```
 
 The locale is stored in the credentials and automatically used for all subsequent API calls.

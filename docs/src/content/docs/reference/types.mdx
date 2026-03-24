@@ -35,7 +35,7 @@ type AudibleCredentials = {
 
 ## AudibleItem
 
-An audiobook returned by `fetchLibrary()`, `fetchWishlist()`, and `fetchCatalog()`.
+An audiobook returned by `library()`, `wishlist()`, and `catalog()`.
 
 ```typescript
 type AudibleItem = {
@@ -211,7 +211,7 @@ type AudibleRelationship = {
 
 ## CatalogOptions
 
-Options for `fetchCatalog()`.
+Options for `catalog()`.
 
 ```typescript
 type CatalogOptions = {
@@ -237,19 +237,19 @@ type CatalogOptions = {
 **Example:**
 ```typescript
 // Most voted Science Fiction (default)
-await fetchCatalog(credentials, {
+await catalog(credentials, {
   category: 'science-fiction',
   numResults: 20,
 })
 
 // Latest releases (Audible API sort, single page)
-await fetchCatalog(credentials, {
+await catalog(credentials, {
   category: 'science-fiction',
   sortBy: '-ReleaseDate',
 })
 
 // Raw category ID with keyword search
-await fetchCatalog(credentials, {
+await catalog(credentials, {
   categoryId: '21229020031',
   sortBy: 'Relevance',
   keywords: 'space opera',
@@ -290,17 +290,17 @@ type AudibleGenre =
 
 **Example:**
 ```typescript
-import { fetchCatalog } from 'audible-api-ts'
+import { catalog } from 'audible-api-ts'
 
 // Works on any locale — the library resolves the correct category ID
-const { items } = await fetchCatalog(credentials, { category: 'thriller' })
+const { items } = await catalog(credentials, { category: 'thriller' })
 ```
 
 ---
 
 ## AuthSession
 
-PKCE session data. Returned by `generateLoginUrl()`, passed to `registerDevice()`.
+PKCE session data. Returned by `login()`, passed to `register()`.
 
 ```typescript
 type AuthSession = {

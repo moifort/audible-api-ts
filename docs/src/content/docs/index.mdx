@@ -37,14 +37,14 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 ## Quick Example
 
 ```typescript
-import { generateLoginUrl, registerDevice, fetchLibrary, fetchCatalog } from 'audible-api-ts'
+import { login, register, library, catalog } from 'audible-api-ts'
 
 // Authenticate
-const { loginUrl, session, cookies } = await generateLoginUrl('com')
-const credentials = await registerDevice(authorizationCode, session)
+const { loginUrl, session, cookies } = await login('com')
+const credentials = await register(authorizationCode, session)
 
 // Fetch your library with full details
-const { items: library } = await fetchLibrary(credentials)
+const { items: library } = await library(credentials)
 
 library.map((book) => {
   const rating = book.rating?.overallDistribution
@@ -57,7 +57,7 @@ library.map((book) => {
 })
 
 // Search the catalog for most voted Sci-Fi
-const { items: scifi } = await fetchCatalog(credentials, {
+const { items: scifi } = await catalog(credentials, {
   category: 'science-fiction',  // genre name, resolved per locale
   numResults: 5,                // MostVoted is the default sort
 })

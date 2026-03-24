@@ -10,10 +10,10 @@ const SOFTWARE_VERSION = '35602678'
 /**
  * Generate a login URL for the Audible PKCE OAuth flow.
  *
- * Returns the URL to redirect the user to, the session to pass back to `registerDevice`,
+ * Returns the URL to redirect the user to, the session to pass back to `register`,
  * and the cookies to set in the browser before redirecting.
  */
-export const generateLoginUrl = async (locale: AudibleLocale) => {
+export const login = async (locale: AudibleLocale) => {
   const config = AUDIBLE_LOCALES[locale]
 
   const codeVerifier = base64url(randomBytes(32))
@@ -85,10 +85,10 @@ export const generateLoginUrl = async (locale: AudibleLocale) => {
  * Complete device registration using the authorization code from the OAuth callback.
  *
  * @param authorizationCode - The code received from the OAuth callback URL
- * @param session - The auth session returned by `generateLoginUrl`
+ * @param session - The auth session returned by `login`
  * @returns The credentials to use for all subsequent API calls
  */
-export const registerDevice = async (authorizationCode: string, session: AuthSession) => {
+export const register = async (authorizationCode: string, session: AuthSession) => {
   const config = AUDIBLE_LOCALES[session.locale]
   const clientId = toHexString(`${session.serial}#${DEVICE_TYPE}`)
 
@@ -157,7 +157,7 @@ export const registerDevice = async (authorizationCode: string, session: AuthSes
  *
  * @returns Updated credentials with the new access token and expiration
  */
-export const refreshAccessToken = async (credentials: AudibleCredentials) => {
+export const refresh = async (credentials: AudibleCredentials) => {
   const config = AUDIBLE_LOCALES[credentials.locale]
 
   const response = await fetch(`https://api.amazon.${config.domain}/auth/token`, {
