@@ -45,7 +45,7 @@ console.log(`Authenticated! Expires: ${credentials.expiresAt}`)
 
 ### `refresh(credentials)`
 
-Refresh an expired access token.
+Manually refresh an access token. Usually not needed — all API functions auto-refresh credentials before each call.
 
 ```typescript
 const updated = await refresh(credentials)
@@ -67,7 +67,7 @@ console.log(`New expiration: ${updated.expiresAt}`)
 
 ### `library(credentials)`
 
-Fetch the user's entire Audible library with automatic pagination.
+Fetch the user's entire Audible library with automatic pagination. Credentials are auto-refreshed before the call.
 
 ```typescript
 const { items } = await library(credentials)
@@ -95,7 +95,7 @@ Pagination is automatic — all items are fetched (50 per page).
 
 ### `wishlist(credentials)`
 
-Fetch the user's entire Audible wishlist with automatic pagination.
+Fetch the user's entire Audible wishlist with automatic pagination. Credentials are auto-refreshed before the call.
 
 ```typescript
 const { items } = await wishlist(credentials)
@@ -116,19 +116,19 @@ items.map((book) =>
 
 ### `catalog(credentials, options)`
 
-Search the Audible catalog by category with optional filters. Results are automatically sorted by number of ratings (desc) then average rating (desc).
+Search the Audible catalog by category with optional filters. Credentials are auto-refreshed before the call.
 
 ```typescript
-// Most voted Science Fiction (default — fetches all pages, sorts by votes)
+// Most voted Science Fiction (default sort)
 const { items } = await catalog(credentials, {
   category: 'science-fiction',
-  numResults: 20,
+  limit: 20,
 })
 
 // Or using raw category ID
 const { items: items2 } = await catalog(credentials, {
   categoryId: '21229020031',
-  numResults: 20,
+  limit: 20,
 })
 
 items.map((book, i) => {
@@ -146,14 +146,12 @@ items.map((book, i) => {
 | `options.category` | `AudibleGenre` | — | Genre name, resolved per locale |
 | `options.categoryId` | `string` | — | Raw category ID (alternative to `category`) |
 | `options.sortBy` | `string` | `'MostVoted'` | Sort order (see below) |
-| `options.maxPages` | `number` | `10` | Max pages for `MostVoted` (50 items/page) |
+| `options.limit` | `number \| 'all'` | `50` | Max results to return. Use `'all'` to fetch everything |
 | `options.keywords` | `string` | — | Search term filter |
 | `options.author` | `string` | — | Filter by author name |
 | `options.narrator` | `string` | — | Filter by narrator name |
-| `options.numResults` | `number` | `50` | Number of results to return |
-| `options.page` | `number` | `1` | Page number (for non-MostVoted sorts) |
 
-**Sort options:** `'MostVoted'` (default — fetches all pages, sorts by votes client-side), `'BestSellers'`, `'AvgRating'`, `'Relevance'`, `'ReleaseDate'`, `'-ReleaseDate'`, `'Title'`
+**Sort options:** `'MostVoted'` (default), `'BestSellers'`, `'AvgRating'`, `'Relevance'`, `'ReleaseDate'`, `'-ReleaseDate'`, `'Title'`
 
 **Returns:** `Promise<{ items: AudibleItem[], credentials: AudibleCredentials }>`
 
@@ -161,14 +159,14 @@ items.map((book, i) => {
 
 ### `verify(credentials)`
 
-Verify that credentials are valid by making a minimal API call.
+Verify that credentials are valid by making a minimal API call. Credentials are auto-refreshed before the call.
 
 ```typescript
 try {
   await verify(credentials)
   console.log('Connected')
 } catch {
-  console.log('Credentials expired — call refresh()')
+  console.log('Credentials invalid')
 }
 ```
 

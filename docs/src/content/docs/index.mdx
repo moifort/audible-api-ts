@@ -59,7 +59,7 @@ library.map((book) => {
 // Search the catalog for most voted Sci-Fi
 const { items: scifi } = await catalog(credentials, {
   category: 'science-fiction',  // genre name, resolved per locale
-  numResults: 5,                // MostVoted is the default sort
+  limit: 5,                    // MostVoted is the default sort
 })
 
 scifi.map((book) =>

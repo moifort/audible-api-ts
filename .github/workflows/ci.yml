@@ -45,5 +45,6 @@ jobs:
 
       - name: Integration tests
         run: bun run test:int
+        timeout-minutes: 5
         env:
           AUDIBLE_CREDENTIALS: ${{ secrets.AUDIBLE_CREDENTIALS }}

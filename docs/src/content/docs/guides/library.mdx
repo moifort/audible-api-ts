@@ -34,7 +34,7 @@ import { catalog } from 'audible-api-ts'
 
 const { items } = await catalog(credentials, {
   category: 'science-fiction',  // resolved to the correct ID per locale
-  numResults: 20,               // MostVoted is the default — fetches all pages, sorts by votes
+  limit: 20,                   // MostVoted is the default sort
 })
 ```
 
@@ -50,13 +50,11 @@ Results are automatically sorted by number of ratings (desc) then average rating
 |--------|------|---------|-------------|
 | `category` | `AudibleGenre` | — | Genre name (resolved per locale) |
 | `categoryId` | `string` | — | Raw Audible category ID (alternative to `category`) |
-| `sortBy` | `string` | `'MostVoted'` | `'MostVoted'` (fetches all pages, sorts by votes), `'BestSellers'`, `'AvgRating'`, `'Relevance'`, `'ReleaseDate'`, `'-ReleaseDate'`, `'Title'` |
-| `maxPages` | `number` | `10` | Max pages to fetch for `MostVoted` sort (50 items/page) |
+| `sortBy` | `string` | `'MostVoted'` | `'MostVoted'`, `'BestSellers'`, `'AvgRating'`, `'Relevance'`, `'ReleaseDate'`, `'-ReleaseDate'`, `'Title'` |
+| `limit` | `number \| 'all'` | `50` | Max results to return. Use `'all'` to fetch everything |
 | `keywords` | `string` | — | Search term |
 | `author` | `string` | — | Filter by author name |
 | `narrator` | `string` | — | Filter by narrator name |
-| `numResults` | `number` | `50` | Number of results to return (max 50) |
-| `page` | `number` | `1` | Page number (for single-page mode) |
 
 <Aside type="tip">
   Use `category` for convenience — genre names work across locales. Use `categoryId` only if you need a specific subcategory not covered by the genre list.
@@ -267,7 +265,7 @@ import { catalog } from 'audible-api-ts'
 
 const { items } = await catalog(credentials, {
   category: 'science-fiction',
-  numResults: 10,
+  limit: 10,
 })
 
 items.map((book, i) => {
@@ -292,7 +290,7 @@ items.map((book, i) => {
 const { items } = await catalog(credentials, {
   category: 'science-fiction',
   keywords: 'robot',
-  numResults: 5,
+  limit: 5,
 })
 
 items.map((book) =>

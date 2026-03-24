@@ -74,14 +74,14 @@ Use genre names instead of opaque category IDs — the library resolves them per
 ```typescript
 import { catalog } from 'audible-api-ts'
 
-// Top Science Fiction by number of votes (fetches all pages, sorts client-side)
+// Top Science Fiction by number of votes
 const { items } = await catalog(credentials, {
   category: 'science-fiction',     // resolved per locale, no ID needed
-  sortBy: 'MostVoted',            // default — fetches all pages, sorts by votes
-  numResults: 10,
+  sortBy: 'MostVoted',            // default
+  limit: 10,
 })
 
-// Or use Audible's built-in sort (single page, faster)
+// Or use Audible's built-in sort
 const { items: latest } = await catalog(credentials, {
   category: 'science-fiction',
   sortBy: 'ReleaseDate',
@@ -108,7 +108,7 @@ Available genres: `'science-fiction'`, `'fantasy'`, `'thriller'`, `'romance'`, `
 |----------|-------------|
 | `login(locale)` | Generate PKCE login URL + session + cookies |
 | `register(code, session)` | Exchange auth code for credentials |
-| `refresh(credentials)` | Refresh an expired access token |
+| `refresh(credentials)` | Manually refresh an access token (usually not needed — auto-refresh is built-in) |
 | `library(credentials)` | Fetch all library audiobooks |
 | `wishlist(credentials)` | Fetch all wishlist audiobooks |
 | `catalog(credentials, options)` | Search catalog by category with sorting |

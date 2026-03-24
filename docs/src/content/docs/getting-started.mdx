@@ -115,7 +115,7 @@ Search the Audible catalog by category, sorted by popularity:
 // Top 10 Science Fiction by number of votes
 const { items } = await catalog(credentials, {
   category: 'science-fiction',  // genre name, resolved per locale
-  numResults: 10,               // MostVoted is the default sort
+  limit: 10,                   // MostVoted is the default sort
 })
 
 items.map((book, i) => {

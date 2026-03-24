@@ -33,7 +33,7 @@ const credentials = await register(code, session)
 
 ### refresh(credentials: AudibleCredentials): Promise<AudibleCredentials>
 
-Refresh an expired access token.
+Manually refresh an access token. Usually not needed — all API functions (`library`, `wishlist`, `catalog`, `verify`) auto-refresh credentials before each call.
 
 ```typescript
 import { refresh } from 'audible-api-ts'
@@ -42,7 +42,7 @@ const updated = await refresh(credentials)
 
 ### library(credentials: AudibleCredentials): Promise<{ items: AudibleItem[], credentials }>
 
-Fetch the user's entire Audible library with automatic pagination.
+Fetch the user's entire Audible library with automatic pagination. Credentials are auto-refreshed before the call.
 
 ```typescript
 import { library } from 'audible-api-ts'
@@ -52,7 +52,7 @@ items.map((book) => console.log(`${book.title} by ${book.authors.join(', ')}`))
 
 ### wishlist(credentials: AudibleCredentials): Promise<{ items: AudibleItem[], credentials }>
 
-Fetch the user's entire Audible wishlist with automatic pagination.
+Fetch the user's entire Audible wishlist with automatic pagination. Credentials are auto-refreshed before the call.
 
 ```typescript
 import { wishlist } from 'audible-api-ts'
@@ -61,19 +61,19 @@ const { items } = await wishlist(credentials)
 
 ### catalog(credentials: AudibleCredentials, options: CatalogOptions): Promise<{ items: AudibleItem[], credentials }>
 
-Search the Audible catalog by category. Default sort is 'MostVoted' which fetches all pages and sorts by number of ratings.
+Search the Audible catalog by category. Default sort is 'MostVoted'. Credentials are auto-refreshed before the call.
 
 ```typescript
 import { catalog } from 'audible-api-ts'
 const { items } = await catalog(credentials, {
   category: 'science-fiction',
-  numResults: 20,
+  limit: 20,
 })
 ```
 
 ### verify(credentials: AudibleCredentials): Promise<void>
 
-Verify credentials are valid. Throws on invalid/expired credentials.
+Verify credentials are valid. Throws on invalid/expired credentials. Credentials are auto-refreshed before the call.
 
 ```typescript
 import { verify } from 'audible-api-ts'
@@ -209,12 +209,10 @@ Returned by library(), wishlist(), and catalog().
   category?: AudibleGenre       // genre name, resolved per locale
   categoryId?: string           // or raw Audible category ID
   sortBy?: 'MostVoted' | 'BestSellers' | 'AvgRating' | 'Relevance' | 'ReleaseDate' | '-ReleaseDate' | 'Title'
-  maxPages?: number             // max pages for MostVoted (default 10)
+  limit?: number | 'all'       // max results to return (default 50)
   keywords?: string
   author?: string
   narrator?: string
-  numResults?: number           // default 50
-  page?: number                 // for non-MostVoted sorts
 }
 ```
 
@@ -258,14 +256,14 @@ Genre-to-category-ID mapping per locale. Used internally by catalog() when `cate
 ## Complete Example
 
 ```typescript
-import { login, register, refresh, library, catalog } from 'audible-api-ts'
+import { login, register, library, catalog } from 'audible-api-ts'
 
 // 1. Auth
 const { loginUrl, session, cookies } = await login('fr')
 // → redirect user to loginUrl with cookies set
 const credentials = await register(authorizationCode, session)
 
-// 2. Library
+// 2. Library (credentials are auto-refreshed before API calls)
 const { items } = await library(credentials)
 items.map((book) => {
   const r = book.rating?.overallDistribution
@@ -277,10 +275,7 @@ items.map((book) => {
 // 3. Catalog search
 const { items: sf } = await catalog(credentials, {
   category: 'science-fiction',
-  numResults: 10,
+  limit: 10,
 })
 sf.map((book, i) => console.log(`${i + 1}. ${book.title}`))
-
-// 4. Token refresh
-const fresh = await refresh(credentials)
 ```

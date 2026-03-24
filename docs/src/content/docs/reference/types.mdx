@@ -218,19 +218,17 @@ type CatalogOptions = {
   category?: AudibleGenre  // genre name, resolved per locale
   categoryId?: string      // or raw category ID
   sortBy?:
-    | 'MostVoted'          // default — fetches all pages, sorts by votes
-    | 'BestSellers'        // Audible API sort (single page)
+    | 'MostVoted'          // default
+    | 'BestSellers'
     | 'AvgRating'
     | 'Relevance'
     | 'ReleaseDate'
     | '-ReleaseDate'
     | 'Title'
-  maxPages?: number        // max pages for MostVoted (default 10)
+  limit?: number | 'all'  // max results to return (default 50)
   keywords?: string
   author?: string
   narrator?: string
-  numResults?: number      // default 50
-  page?: number            // page number (for non-MostVoted sorts)
 }
 ```
 
@@ -239,10 +237,10 @@ type CatalogOptions = {
 // Most voted Science Fiction (default)
 await catalog(credentials, {
   category: 'science-fiction',
-  numResults: 20,
+  limit: 20,
 })
 
-// Latest releases (Audible API sort, single page)
+// Latest releases
 await catalog(credentials, {
   category: 'science-fiction',
   sortBy: '-ReleaseDate',
