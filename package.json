@@ -1,7 +1,7 @@
 {
   "name": "audible-api-ts",
-  "version": "0.1.0",
-  "description": "A fully typed TypeScript client for the Audible API — authentication, library, and wishlist",
+  "version": "0.2.0",
+  "description": "A fully typed TypeScript client for the Audible API — authentication, library, wishlist, and catalog search",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -11,7 +11,9 @@
       "types": "./dist/index.d.ts"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "bun run build:js && bun run build:types",
     "build:js": "bun build ./src/index.ts --outdir ./dist --target node --format esm --splitting",
