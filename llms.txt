@@ -223,7 +223,16 @@ Returned by library(), wishlist(), and catalog().
 ### AudibleGenre
 
 ```
+// Main genres
 'science-fiction' | 'fantasy' | 'science-fiction-fantasy' | 'thriller' | 'mystery' | 'horror' | 'romance' | 'historical-fiction' | 'literary-fiction' | 'biography' | 'history' | 'business' | 'self-help' | 'science' | 'children' | 'young-adult' | 'comedy' | 'erotica' | 'religion' | 'sports' | 'travel' | 'lgbtq'
+
+// Sub-genres (slash notation)
+'science-fiction/space-opera' | 'science-fiction/cyberpunk' | 'science-fiction/dystopian' | ...
+'fantasy/epic' | 'fantasy/dragons' | 'fantasy/urban-paranormal' | ...
+'thriller/suspense' | 'thriller/psychological' | ...
+'mystery/detective' | 'mystery/noir' | ...
+'romance/historical' | 'romance/paranormal' | 'romance/comedy' | ...
+'literary-fiction/classics' | 'literary-fiction/world-literature' | ...
 ```
 
 ### AuthSession
@@ -282,4 +291,11 @@ const { items: sf } = await catalog(credentials, {
   limit: 10,
 })
 sf.map((book, i) => console.log(`${i + 1}. ${book.title}`))
+
+// 4. Catalog search with sub-genre
+const { items: spaceOpera } = await catalog(credentials, {
+  category: 'science-fiction/space-opera',
+  limit: 10,
+})
+spaceOpera.map((book, i) => console.log(`${i + 1}. ${book.title}`))
 ```

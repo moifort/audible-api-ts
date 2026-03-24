@@ -269,6 +269,7 @@ String union of available genre names for catalog search. Resolved to locale-spe
 
 ```typescript
 type AudibleGenre =
+  // Main genres
   | 'science-fiction'
   | 'fantasy'
   | 'science-fiction-fantasy'
@@ -291,6 +292,33 @@ type AudibleGenre =
   | 'sports'
   | 'travel'
   | 'lgbtq'
+
+  // Science Fiction sub-genres
+  | 'science-fiction/space-opera'
+  | 'science-fiction/cyberpunk'
+  | 'science-fiction/dystopian'
+
+  // Fantasy sub-genres
+  | 'fantasy/epic'
+  | 'fantasy/dragons'
+  | 'fantasy/urban-paranormal'
+
+  // Thriller sub-genres
+  | 'thriller/suspense'
+  | 'thriller/psychological'
+
+  // Mystery sub-genres
+  | 'mystery/detective'
+  | 'mystery/noir'
+
+  // Romance sub-genres
+  | 'romance/historical'
+  | 'romance/paranormal'
+  | 'romance/comedy'
+
+  // Literary Fiction sub-genres
+  | 'literary-fiction/classics'
+  | 'literary-fiction/world-literature'
 ```
 
 **Example:**
@@ -299,6 +327,11 @@ import { catalog } from 'audible-api-ts'
 
 // Works on any locale — the library resolves the correct category ID
 const { items } = await catalog(credentials, { category: 'thriller' })
+
+// Sub-genres use slash notation for more specific results
+const { items: spaceOpera } = await catalog(credentials, {
+  category: 'science-fiction/space-opera',
+})
 ```
 
 ---

@@ -107,7 +107,7 @@ Dune — 2112 ratings, 4.6/5
 Projet Dernière chance — 832 ratings, 4.7/5
 ```
 
-Available genres: `'science-fiction'`, `'fantasy'`, `'thriller'`, `'romance'`, `'horror'`, `'mystery'`, `'biography'`, `'history'`, `'business'`, `'comedy'`, and [more](https://moifort.github.io/audible-api-ts/reference/types/#audiblegenre).
+Available genres: `'science-fiction'`, `'fantasy'`, `'thriller'`, `'romance'`, `'horror'`, `'mystery'`, `'biography'`, `'history'`, `'business'`, `'comedy'`, and [more](https://moifort.github.io/audible-api-ts/reference/types/#audiblegenre). Sub-genres use slash notation: `'science-fiction/space-opera'`, `'fantasy/epic'`, `'thriller/psychological'`, `'romance/historical'`, etc.
 
 ## API
 

@@ -42,6 +42,27 @@ const { items } = await catalog(credentials, {
 
 `'science-fiction'`, `'fantasy'`, `'science-fiction-fantasy'`, `'thriller'`, `'mystery'`, `'horror'`, `'romance'`, `'historical-fiction'`, `'literary-fiction'`, `'biography'`, `'history'`, `'business'`, `'self-help'`, `'science'`, `'children'`, `'young-adult'`, `'comedy'`, `'erotica'`, `'religion'`, `'sports'`, `'travel'`, `'lgbtq'`
 
+#### Sub-genres
+
+Sub-genres use slash notation (`parent/sub-genre`) for more specific catalog searches:
+
+| Parent | Sub-genres |
+|--------|-----------|
+| `science-fiction` | `science-fiction/space-opera`, `science-fiction/cyberpunk`, `science-fiction/dystopian` |
+| `fantasy` | `fantasy/epic`, `fantasy/dragons`, `fantasy/urban-paranormal` |
+| `thriller` | `thriller/suspense`, `thriller/psychological` |
+| `mystery` | `mystery/detective`, `mystery/noir` |
+| `romance` | `romance/historical`, `romance/paranormal`, `romance/comedy` |
+| `literary-fiction` | `literary-fiction/classics`, `literary-fiction/world-literature` |
+
+```typescript
+// Search a specific sub-genre
+const { items } = await catalog(credentials, {
+  category: 'science-fiction/space-opera',
+  limit: 10,
+})
+```
+
 ### Catalog Options
 
 | Option | Type | Default | Description |
