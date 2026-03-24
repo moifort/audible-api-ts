@@ -3,7 +3,7 @@ title: audible-api-ts
 description: A fully typed TypeScript client for the Audible API
 template: splash
 hero:
-  tagline: The first fully typed TypeScript client for the Audible API. Authentication, library, wishlist — all with complete type safety.
+  tagline: The first fully typed TypeScript client for the Audible API. Authentication, library, wishlist, catalog search — all with complete type safety.
   actions:
     - text: Get Started
       link: /audible-api-ts/getting-started/
@@ -29,34 +29,61 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
   <Card title="PKCE Authentication" icon="approve-check">
     Complete OAuth2 PKCE flow with device registration, just like the official Audible mobile app.
   </Card>
-  <Card title="Minimal Dependencies" icon="rocket">
-    Only `zod` for API response validation. Uses native `fetch` and Node.js `crypto`. Nothing else.
+  <Card title="Full Data" icon="rocket">
+    Ratings, categories, listening progress, series, cover images, relationships — every field from the API.
   </Card>
 </CardGrid>
 
 ## Quick Example
 
 ```typescript
-import {
-  generateLoginUrl,
-  registerDevice,
-  fetchLibrary,
-} from 'audible-api-ts'
+import { generateLoginUrl, registerDevice, fetchLibrary, fetchCatalog } from 'audible-api-ts'
 
-// 1. Generate login URL
+// Authenticate
 const { loginUrl, session, cookies } = await generateLoginUrl('com')
-
-// 2. User logs in via browser, you get the authorization code
 const credentials = await registerDevice(authorizationCode, session)
 
-// 3. Fetch the library
-const { items } = await fetchLibrary(credentials)
+// Fetch your library with full details
+const { items: library } = await fetchLibrary(credentials)
 
-items.map((book) => console.log(`${book.title} by ${book.authors.join(', ')}`))
+library.map((book) => {
+  const rating = book.rating?.overallDistribution
+  const progress = book.listeningStatus?.percentComplete
+
+  console.log(`${book.title} by ${book.authors.join(', ')}`)
+  if (rating) console.log(`  ${rating.averageRating.toFixed(1)}/5 (${rating.numRatings} ratings)`)
+  if (book.series) console.log(`  Series: ${book.series.name} #${book.series.position}`)
+  if (progress) console.log(`  Progress: ${progress}%`)
+})
+
+// Search the catalog for bestselling Sci-Fi
+const { items: scifi } = await fetchCatalog(credentials, {
+  categoryId: '18580628011',
+  sortBy: 'BestSellers',
+  numResults: 5,
+})
+
+scifi.map((book) =>
+  console.log(`${book.title} — ${book.rating?.overallDistribution?.averageRating?.toFixed(1)}/5`)
+)
+```
+
+**Output:**
+```
+Primal Hunter by Zogarth
+  4.8/5 (156 ratings)
+  Series: Primal Hunter #4
+  Progress: 5%
+Dune by Frank Herbert
+  4.7/5 (45210 ratings)
+
+Project Hail Mary — 4.9/5
+Dune — 4.7/5
+The Hitchhiker's Guide to the Galaxy — 4.6/5
 ```
 
 ## The TypeScript Audible Client
 
 There is an excellent [Python Audible library](https://github.com/mkb79/Audible) by mkb79. But if you're building with TypeScript or Node.js, you've been on your own — until now.
 
-**audible-api-ts** brings the same power to the TypeScript ecosystem: full PKCE authentication, signed API requests, paginated data fetching, and complete type definitions for every response.
+**audible-api-ts** brings the same power to the TypeScript ecosystem: full PKCE authentication, signed API requests, paginated data fetching, catalog search, and complete type definitions for every response.

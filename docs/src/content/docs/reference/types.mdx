@@ -9,16 +9,8 @@ String union of all supported Audible marketplace identifiers.
 
 ```typescript
 type AudibleLocale =
-  | 'fr'
-  | 'com'
-  | 'co.uk'
-  | 'de'
-  | 'it'
-  | 'es'
-  | 'ca'
-  | 'com.au'
-  | 'in'
-  | 'co.jp'
+  | 'fr' | 'com' | 'co.uk' | 'de' | 'it'
+  | 'es' | 'ca' | 'com.au' | 'in' | 'co.jp'
 ```
 
 ---
@@ -33,7 +25,7 @@ type AudibleCredentials = {
   refreshToken: string      // Long-lived refresh token
   adpToken: string          // MAC DMS token for request signing
   devicePrivateKey: string  // RSA private key for signing
-  serial: string            // Device serial (UUID format, no dashes)
+  serial: string            // Device serial (UUID, no dashes)
   locale: AudibleLocale     // Marketplace locale
   expiresAt: Date           // Access token expiration
 }
@@ -43,25 +35,205 @@ type AudibleCredentials = {
 
 ## AudibleItem
 
-An audiobook from the Audible catalog, as returned by `fetchLibrary()` and `fetchWishlist()`.
+An audiobook returned by `fetchLibrary()`, `fetchWishlist()`, and `fetchCatalog()`.
 
 ```typescript
 type AudibleItem = {
-  asin: string              // Unique identifier (10-char alphanumeric)
-  title: string             // Book title
-  authors: string[]         // Author name(s)
-  narrators: string[]       // Narrator name(s)
-  durationMinutes: number   // Total duration in minutes
-  publisher?: string        // Publisher name
-  language?: string         // Language (e.g. "english")
-  releaseDate?: Date        // Release date
-  coverUrl?: string         // Cover image URL (500px preferred)
-  series?: {
-    name: string            // Series name
-    position?: number       // Position in series
-  }
-  finishedAt?: Date         // When the user finished listening
+  // Identity
+  asin: string                    // "B08G9PRS1K"
+  title: string                   // "Primal Hunter"
+  subtitle?: string               // "Primal Hunter, Tome 4"
+  isbn?: string                   // "9791036645624"
+  sku?: string                    // "BK_LIZZ_002036FR"
+
+  // People
+  authors: string[]               // ["Zogarth"]
+  narrators: string[]             // ["Sébastien Mortamet"]
+
+  // Content
+  durationMinutes: number         // 1770
+  publisher?: string              // "Lizzie"
+  language?: string               // "french"
+  releaseDate?: Date              // 2026-03-12
+  coverUrl?: string               // "https://m.media-amazon.com/..."
+  summary?: string                // Full HTML description
+  description?: string            // Extended product description (HTML)
+  merchandisingSummary?: string   // Short HTML summary
+  copyright?: string              // "©2026 Zogarth..."
+  formatType?: string             // "unabridged"
+  contentType?: string            // "Product"
+  contentDeliveryType?: string    // "MultiPartBook"
+  programParticipation?: string   // "Audible Original"
+
+  // Classification
+  series?: { name: string; position?: number }
+  categories: CategoryLadder[]
+  keywords: string[]              // ["Science_Fiction_Fantasy", ...]
+
+  // Ratings
+  rating?: AudibleRating
+
+  // Listening (library only)
+  listeningStatus?: ListeningStatus
+  purchaseDate?: Date
+  dateAdded?: Date
+
+  // Relationships
+  relationships: AudibleRelationship[]
+
+  // Images
+  productImages: Record<string, string>      // { "500": "https://..." }
+  socialMediaImages: Record<string, string>  // { "facebook": "https://..." }
+
+  // Flags
+  isAdultProduct: boolean
 }
+```
+
+---
+
+## AudibleRating
+
+Full rating data with three dimensions: overall, performance (narrator), and story.
+
+```typescript
+type AudibleRating = {
+  numReviews: number
+  overallDistribution?: RatingDistribution
+  performanceDistribution?: RatingDistribution
+  storyDistribution?: RatingDistribution
+}
+```
+
+**Example:**
+```typescript
+const rating = book.rating
+// rating.overallDistribution?.averageRating  → 4.8
+// rating.overallDistribution?.numRatings     → 156
+// rating.performanceDistribution?.averageRating → 4.7
+// rating.storyDistribution?.averageRating       → 4.9
+```
+
+---
+
+## RatingDistribution
+
+Star distribution for a single rating dimension.
+
+```typescript
+type RatingDistribution = {
+  averageRating: number           // 4.759
+  displayAverageRating: string    // "4.8"
+  displayStars: number            // 5
+  numRatings: number              // 156
+  numFiveStarRatings: number      // 127
+  numFourStarRatings: number      // 25
+  numThreeStarRatings: number     // 2
+  numTwoStarRatings: number       // 0
+  numOneStarRatings: number       // 2
+}
+```
+
+---
+
+## ListeningStatus
+
+Listening progress for a library item.
+
+```typescript
+type ListeningStatus = {
+  finishedAt?: Date              // When the user finished listening
+  isFinished?: boolean           // Whether the book is marked as finished
+  percentComplete?: number       // 0-100
+  timeRemainingSeconds?: number  // Seconds left to listen
+}
+```
+
+**Example:**
+```typescript
+const status = book.listeningStatus
+// status?.percentComplete       → 5
+// status?.timeRemainingSeconds  → 100890 (28 hours)
+// status?.finishedAt            → undefined (not finished yet)
+```
+
+---
+
+## CategoryLadder
+
+A genre classification path from root to leaf.
+
+```typescript
+type CategoryLadder = {
+  root: string                   // "Genres"
+  categories: AudibleCategory[]  // Path from broad to specific
+}
+
+type AudibleCategory = {
+  id: string    // "21228885031"
+  name: string  // "Science-Fiction et fantasy"
+}
+```
+
+**Example:**
+```typescript
+book.categories
+// [
+//   {
+//     root: "Genres",
+//     categories: [
+//       { id: "21228885031", name: "Science-Fiction et fantasy" },
+//       { id: "21229021031", name: "Fantasy" },
+//       { id: "21229712031", name: "Action et aventure" }
+//     ]
+//   }
+// ]
+```
+
+---
+
+## AudibleRelationship
+
+A link to another Audible product (series parent, book components, etc.).
+
+```typescript
+type AudibleRelationship = {
+  asin: string                  // "B0DW8WDHFT"
+  relationshipToProduct: string // "parent" or "child"
+  relationshipType: string      // "series" or "component"
+  title?: string                // "Primal Hunter"
+  sort?: string                 // "4" (position)
+  url?: string                  // "/pd/Primal-Hunter-Livre-Audio/B0DW8WDHFT"
+}
+```
+
+---
+
+## CatalogOptions
+
+Options for `fetchCatalog()`.
+
+```typescript
+type CatalogOptions = {
+  categoryId: string
+  sortBy?: 'BestSellers' | 'AvgRating' | 'Relevance'
+         | 'ReleaseDate' | '-ReleaseDate' | 'Title'
+  keywords?: string
+  author?: string
+  narrator?: string
+  numResults?: number  // default 50, max 50
+  page?: number        // default 1
+}
+```
+
+**Example:**
+```typescript
+await fetchCatalog(credentials, {
+  categoryId: '18580628011',
+  sortBy: 'BestSellers',
+  keywords: 'space opera',
+  numResults: 20,
+})
 ```
 
 ---
@@ -79,8 +251,6 @@ type AuthSession = {
 }
 ```
 
-You must store this between the login URL generation and the device registration callback.
-
 ---
 
 ## AudibleCookie
@@ -89,9 +259,9 @@ A cookie to set in the browser before redirecting to the login URL.
 
 ```typescript
 type AudibleCookie = {
-  name: string    // Cookie name (frc, map-md, or amzn-app-id)
+  name: string    // "frc", "map-md", or "amzn-app-id"
   value: string   // Cookie value
-  domain: string  // Cookie domain (e.g. ".amazon.fr")
+  domain: string  // ".amazon.fr"
 }
 ```
 
@@ -103,9 +273,9 @@ Configuration for a specific Audible marketplace.
 
 ```typescript
 type LocaleConfig = {
-  domain: string        // Amazon/Audible domain suffix
-  marketplaceId: string // Internal marketplace ID
-  countryCode: string   // Two-letter country code
+  domain: string        // "fr"
+  marketplaceId: string // "A2728XDNODOQ8T"
+  countryCode: string   // "fr"
 }
 ```
 

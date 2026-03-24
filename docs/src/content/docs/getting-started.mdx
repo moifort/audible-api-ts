@@ -27,7 +27,7 @@ The Audible API uses a 3-step authentication flow:
 
 1. **Generate a login URL** — redirect the user to Amazon's login page
 2. **Register the device** — exchange the authorization code for credentials
-3. **Fetch data** — use credentials to access library and wishlist
+3. **Fetch data** — use credentials to access library, wishlist, and catalog
 
 ```typescript
 import {
@@ -35,6 +35,7 @@ import {
   registerDevice,
   fetchLibrary,
   fetchWishlist,
+  fetchCatalog,
 } from 'audible-api-ts'
 
 // Step 1: Generate the login URL for the French marketplace
@@ -56,23 +57,106 @@ const { items: library } = await fetchLibrary(credentials)
 console.log(`Found ${library.length} audiobooks`)
 
 library.map((book) => {
-  console.log(`📖 ${book.title}`)
-  console.log(`   Authors: ${book.authors.join(', ')}`)
-  console.log(`   Duration: ${book.durationMinutes} min`)
+  const rating = book.rating?.overallDistribution
+  const hours = Math.floor(book.durationMinutes / 60)
+  const mins = book.durationMinutes % 60
+
+  console.log(`${book.title}`)
+  console.log(`  Authors: ${book.authors.join(', ')}`)
+  console.log(`  Narrators: ${book.narrators.join(', ')}`)
+  console.log(`  Duration: ${hours}h ${mins}min`)
+  console.log(`  Publisher: ${book.publisher}`)
   if (book.series) {
-    console.log(`   Series: ${book.series.name} #${book.series.position}`)
+    console.log(`  Series: ${book.series.name} #${book.series.position}`)
+  }
+  if (rating) {
+    console.log(`  Rating: ${rating.averageRating.toFixed(1)}/5 (${rating.numRatings} votes)`)
+  }
+  if (book.listeningStatus?.percentComplete) {
+    console.log(`  Progress: ${book.listeningStatus.percentComplete}%`)
+  }
+  if (book.listeningStatus?.finishedAt) {
+    console.log(`  Finished: ${book.listeningStatus.finishedAt.toLocaleDateString()}`)
+  }
+  if (book.categories.length > 0) {
+    const genres = book.categories.map((c) => c.categories.map((cat) => cat.name).join(' > '))
+    console.log(`  Genres: ${genres.join(', ')}`)
   }
 })
+```
 
-// Bonus: Fetch the wishlist too
+**Output:**
+```
+Found 142 audiobooks
+Primal Hunter
+  Authors: Zogarth, Astrid Vallet - traducteur
+  Narrators: Sébastien Mortamet
+  Duration: 29h 30min
+  Publisher: Lizzie
+  Series: Primal Hunter #4
+  Rating: 4.8/5 (156 votes)
+  Progress: 5%
+  Genres: Science-Fiction et fantasy > Fantasy > Action et aventure
+Dune - Livre premier et livre second
+  Authors: Frank Herbert, Michel Demuth - traducteur
+  Narrators: Benjamin Jungers
+  Duration: 18h 0min
+  Publisher: Lizzie
+  Rating: 4.7/5 (2830 votes)
+  Finished: 12/15/2024
+  Genres: Science-Fiction et fantasy > Science-Fiction
+```
+
+## Catalog Search
+
+Search the Audible catalog by category, sorted by popularity:
+
+```typescript
+// Top 10 Science Fiction bestsellers
+const { items } = await fetchCatalog(credentials, {
+  categoryId: '18580628011',
+  sortBy: 'BestSellers',
+  numResults: 10,
+})
+
+items.map((book, i) => {
+  const rating = book.rating?.overallDistribution
+  console.log(
+    `${i + 1}. ${book.title} — ` +
+    `${rating?.averageRating?.toFixed(1)}/5 (${rating?.numRatings} votes)`
+  )
+})
+```
+
+**Output:**
+```
+1. Project Hail Mary — 4.9/5 (82341 votes)
+2. Dune — 4.7/5 (45210 votes)
+3. The Hitchhiker's Guide to the Galaxy — 4.6/5 (38102 votes)
+```
+
+## Wishlist
+
+```typescript
 const { items: wishlist } = await fetchWishlist(credentials)
-console.log(`${wishlist.length} books in wishlist`)
+
+wishlist.map((book) =>
+  console.log(`${book.title} — ${book.durationMinutes} min — ${book.publisher}`)
+)
+```
+
+**Output:**
+```
+L'Empire ultime — 1560 min — Lizzie
+The Lies of Locke Lamora — 1356 min — Orion Publishing Group
+Empire of Silence — 1558 min — Recorded Books
 ```
 
 ## What's Next?
 
 - **[Authentication Guide](/audible-api-ts/guides/authentication/)** — Deep dive into the PKCE flow, cookies, and session management
-- **[Library & Wishlist](/audible-api-ts/guides/library/)** — Pagination, response structure, and available fields
+- **[Library & Wishlist](/audible-api-ts/guides/library/)** — All available fields, filtering, stats, and catalog search
 - **[Token Refresh](/audible-api-ts/guides/token-refresh/)** — Handle token expiration gracefully
 - **[Locales](/audible-api-ts/guides/locales/)** — All 10 supported Audible marketplaces
 - **[API Reference](/audible-api-ts/reference/api/)** — Complete function signatures and parameters
+- **[Types Reference](/audible-api-ts/reference/types/)** — All exported TypeScript types

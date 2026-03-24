@@ -20,12 +20,6 @@ const { loginUrl, session, cookies } = await generateLoginUrl('fr')
 
 **Returns:** `Promise<{ loginUrl: string, session: AuthSession, cookies: AudibleCookie[] }>`
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `loginUrl` | `string` | Amazon OAuth login URL to redirect the user to |
-| `session` | `AuthSession` | Session data to pass to `registerDevice()` |
-| `cookies` | `AudibleCookie[]` | 3 cookies to set before redirecting |
-
 ---
 
 ### `registerDevice(authorizationCode, session)`
@@ -34,6 +28,7 @@ Complete device registration using the authorization code from the OAuth callbac
 
 ```typescript
 const credentials = await registerDevice(code, session)
+console.log(`Authenticated! Expires: ${credentials.expiresAt}`)
 ```
 
 **Parameters:**
@@ -54,6 +49,7 @@ Refresh an expired access token.
 
 ```typescript
 const updated = await refreshAccessToken(credentials)
+console.log(`New expiration: ${updated.expiresAt}`)
 ```
 
 **Parameters:**
@@ -74,7 +70,16 @@ const updated = await refreshAccessToken(credentials)
 Fetch the user's entire Audible library with automatic pagination.
 
 ```typescript
-const { items, credentials } = await fetchLibrary(credentials)
+const { items } = await fetchLibrary(credentials)
+
+// Each item has full details: rating, categories, listening progress, etc.
+items.map((book) => {
+  const rating = book.rating?.overallDistribution
+  console.log(`${book.title} — ${rating?.averageRating?.toFixed(1)}/5`)
+  if (book.listeningStatus?.finishedAt) {
+    console.log(`  Finished on ${book.listeningStatus.finishedAt.toLocaleDateString()}`)
+  }
+})
 ```
 
 **Parameters:**
@@ -93,7 +98,11 @@ Pagination is automatic — all items are fetched (50 per page).
 Fetch the user's entire Audible wishlist with automatic pagination.
 
 ```typescript
-const { items, credentials } = await fetchWishlist(credentials)
+const { items } = await fetchWishlist(credentials)
+
+items.map((book) =>
+  console.log(`${book.title} — ${book.durationMinutes} min — ${book.publisher}`)
+)
 ```
 
 **Parameters:**
@@ -105,12 +114,54 @@ const { items, credentials } = await fetchWishlist(credentials)
 
 ---
 
+### `fetchCatalog(credentials, options)`
+
+Search the Audible catalog by category with optional filters. Results are automatically sorted by number of ratings (desc) then average rating (desc).
+
+```typescript
+const { items } = await fetchCatalog(credentials, {
+  categoryId: '18580628011',  // Science Fiction (US)
+  sortBy: 'BestSellers',
+  numResults: 20,
+})
+
+items.map((book, i) => {
+  const r = book.rating?.overallDistribution
+  console.log(
+    `${i + 1}. ${book.title} — ${r?.averageRating?.toFixed(1)}/5 (${r?.numRatings} votes)`
+  )
+})
+```
+
+**Parameters:**
+| Name | Type | Default | Description |
+|------|------|---------|-------------|
+| `credentials` | `AudibleCredentials` | — | Valid credentials |
+| `options.categoryId` | `string` | *required* | Audible category ID |
+| `options.sortBy` | `string` | `'Relevance'` | Sort order (see below) |
+| `options.keywords` | `string` | — | Search term filter |
+| `options.author` | `string` | — | Filter by author name |
+| `options.narrator` | `string` | — | Filter by narrator name |
+| `options.numResults` | `number` | `50` | Number of results (max 50) |
+| `options.page` | `number` | `1` | Page number |
+
+**Sort options:** `'BestSellers'`, `'AvgRating'`, `'Relevance'`, `'ReleaseDate'`, `'-ReleaseDate'`, `'Title'`
+
+**Returns:** `Promise<{ items: AudibleItem[], credentials: AudibleCredentials }>`
+
+---
+
 ### `verifyConnection(credentials)`
 
 Verify that credentials are valid by making a minimal API call.
 
 ```typescript
-await verifyConnection(credentials)
+try {
+  await verifyConnection(credentials)
+  console.log('Connected')
+} catch {
+  console.log('Credentials expired — call refreshAccessToken()')
+}
 ```
 
 **Parameters:**
@@ -135,6 +186,9 @@ import { AUDIBLE_LOCALES } from 'audible-api-ts'
 
 AUDIBLE_LOCALES['fr']
 // { domain: 'fr', marketplaceId: 'A2728XDNODOQ8T', countryCode: 'fr' }
+
+AUDIBLE_LOCALES['com']
+// { domain: 'com', marketplaceId: 'AF2M0KC94RCEA', countryCode: 'us' }
 ```
 
 **Type:** `Record<AudibleLocale, LocaleConfig>`

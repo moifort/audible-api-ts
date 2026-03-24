@@ -1,6 +1,6 @@
 ---
-title: Library & Wishlist
-description: Fetching audiobooks from your Audible library and wishlist
+title: Library, Wishlist & Catalog
+description: Fetching audiobooks from your Audible library, wishlist, and the catalog
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -25,60 +25,279 @@ const { items, credentials } = await fetchWishlist(credentials)
 
 Same API, same response shape — just a different data source.
 
+## Searching the Catalog
+
+```typescript
+import { fetchCatalog } from 'audible-api-ts'
+
+const { items } = await fetchCatalog(credentials, {
+  categoryId: '18580628011',   // Science Fiction (US)
+  sortBy: 'BestSellers',
+  numResults: 20,
+})
+```
+
+Results are automatically sorted by number of ratings (desc) then average rating (desc).
+
+### Catalog Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `categoryId` | `string` | *required* | Audible category ID |
+| `sortBy` | `string` | `'Relevance'` | `'BestSellers'`, `'AvgRating'`, `'Relevance'`, `'ReleaseDate'`, `'-ReleaseDate'`, `'Title'` |
+| `keywords` | `string` | — | Search term |
+| `author` | `string` | — | Filter by author name |
+| `narrator` | `string` | — | Filter by narrator name |
+| `numResults` | `number` | `50` | Max 50 per request |
+| `page` | `number` | `1` | Page number |
+
+<Aside type="tip">
+  Category IDs are locale-specific. For example, Science Fiction is `18580628011` on audible.com but `21228885031` on audible.fr.
+</Aside>
+
 ## The AudibleItem
 
-Each item in the response has this shape:
+Every function returns `AudibleItem` objects with the full data from the API:
 
 ```typescript
 type AudibleItem = {
-  asin: string             // Unique Audible identifier (e.g. "B08G9PRS1K")
-  title: string            // Book title
-  authors: string[]        // Author names
-  narrators: string[]      // Narrator names
-  durationMinutes: number  // Total listening time in minutes
-  publisher?: string       // Publisher name
-  language?: string        // Language (e.g. "english", "french")
-  releaseDate?: Date       // Release date
-  coverUrl?: string        // Cover image URL (500px or 252px)
-  series?: {
-    name: string           // Series name
-    position?: number      // Position in the series
-  }
-  finishedAt?: Date        // When the user finished listening (library only)
+  // Identity
+  asin: string                    // "B08G9PRS1K"
+  title: string                   // "Primal Hunter"
+  subtitle?: string               // "Primal Hunter, Tome 4"
+  isbn?: string                   // "9791036645624"
+
+  // People
+  authors: string[]               // ["Zogarth", "Astrid Vallet - traducteur"]
+  narrators: string[]             // ["Sébastien Mortamet"]
+
+  // Content
+  durationMinutes: number         // 1770
+  publisher?: string              // "Lizzie"
+  language?: string               // "french"
+  releaseDate?: Date              // 2026-03-12
+  coverUrl?: string               // "https://m.media-amazon.com/images/..."
+  summary?: string                // Full HTML description
+  copyright?: string              // "©2026 Zogarth..."
+  formatType?: string             // "unabridged"
+
+  // Classification
+  series?: { name: string; position?: number }
+  categories: CategoryLadder[]    // Genre hierarchy
+  keywords: string[]              // ["Science_Fiction_Fantasy", ...]
+
+  // Ratings (3 dimensions)
+  rating?: AudibleRating
+
+  // Listening progress (library only)
+  listeningStatus?: ListeningStatus
+  purchaseDate?: Date
+  dateAdded?: Date
+
+  // Relationships
+  relationships: AudibleRelationship[]
+
+  // Images
+  productImages: Record<string, string>   // { "500": "https://..." }
+  socialMediaImages: Record<string, string>
+
+  // Flags
+  isAdultProduct: boolean
 }
 ```
 
 ## Examples
 
-### List all finished audiobooks
+### Display books with full details
 
 ```typescript
 const { items } = await fetchLibrary(credentials)
 
-const finished = items.filter((book) => book.finishedAt)
-console.log(`Listened to ${finished.length} out of ${items.length} audiobooks`)
+items.map((book) => {
+  const rating = book.rating?.overallDistribution
+  const hours = Math.floor(book.durationMinutes / 60)
+  const mins = book.durationMinutes % 60
+
+  console.log(`${book.title}${book.subtitle ? ` — ${book.subtitle}` : ''}`)
+  console.log(`  By ${book.authors.join(', ')}`)
+  console.log(`  Narrated by ${book.narrators.join(', ')}`)
+  console.log(`  ${hours}h ${mins}min | ${book.publisher} | ${book.language}`)
+  if (rating) {
+    console.log(`  Rating: ${rating.averageRating.toFixed(1)}/5 (${rating.numRatings} votes)`)
+  }
+  if (book.series) {
+    console.log(`  Series: ${book.series.name} #${book.series.position}`)
+  }
+})
+```
+
+**Output:**
+```
+Primal Hunter — Primal Hunter, Tome 4
+  By Zogarth, Astrid Vallet - traducteur
+  Narrated by Sébastien Mortamet
+  29h 30min | Lizzie | french
+  Rating: 4.8/5 (156 votes)
+  Series: Primal Hunter #4
+```
+
+### Top rated books in your library
+
+```typescript
+import { orderBy } from 'lodash-es'
+
+const { items } = await fetchLibrary(credentials)
+
+const topRated = orderBy(
+  items.filter((book) => book.rating?.overallDistribution),
+  [({ rating }) => rating!.overallDistribution!.averageRating],
+  ['desc'],
+).slice(0, 10)
+
+topRated.map((book, i) => {
+  const r = book.rating!.overallDistribution!
+  console.log(`${i + 1}. ${book.title} — ${r.averageRating.toFixed(1)}/5 (${r.numRatings} votes)`)
+})
+```
+
+**Output:**
+```
+1. Dungeon Crawler Carl — 4.9/5 (759 votes)
+2. Primal Hunter — 4.9/5 (529 votes)
+3. Fondation — 4.8/5 (2830 votes)
+4. Hypérion — 4.8/5 (1625 votes)
+```
+
+### Listening progress and stats
+
+```typescript
+const { items } = await fetchLibrary(credentials)
+
+const finished = items.filter((book) => book.listeningStatus?.finishedAt)
+const inProgress = items.filter(
+  (book) =>
+    book.listeningStatus?.percentComplete &&
+    book.listeningStatus.percentComplete > 0 &&
+    !book.listeningStatus.finishedAt,
+)
+const totalMinutes = items.reduce((sum, book) => sum + book.durationMinutes, 0)
+
+console.log(`Library: ${items.length} audiobooks`)
+console.log(`Finished: ${finished.length}`)
+console.log(`In progress: ${inProgress.length}`)
+console.log(`Total duration: ${Math.floor(totalMinutes / 60)} hours`)
+
+inProgress.map((book) =>
+  console.log(
+    `  ${book.title} — ${book.listeningStatus!.percentComplete}% ` +
+    `(${Math.floor(book.listeningStatus!.timeRemainingSeconds! / 3600)}h remaining)`
+  )
+)
+```
+
+**Output:**
+```
+Library: 142 audiobooks
+Finished: 118
+In progress: 3
+Total duration: 2156 hours
+  Primal Hunter — 5% (28h remaining)
+  Les Guerriers du silence — 12% (21h remaining)
+```
+
+### Filter by category
+
+```typescript
+const { items } = await fetchLibrary(credentials)
+
+const sciFi = items.filter((book) =>
+  book.categories.some((ladder) =>
+    ladder.categories.some((cat) => cat.name.includes('Science-Fiction')),
+  ),
+)
+
+console.log(`${sciFi.length} sci-fi books in library`)
+sciFi.map((book) => console.log(`  ${book.title} — ${book.authors.join(', ')}`))
+```
+
+**Output:**
+```
+98 sci-fi books in library
+  Dune — Frank Herbert
+  Hypérion — Dan Simmons
+  Le problème à trois corps — Liu Cixin
+  Fondation — Isaac Asimov
 ```
 
 ### Group by series
 
 ```typescript
-const bySeries = Map.groupBy(items.filter((book) => book.series), (book) => book.series!.name)
+const bySeries = Map.groupBy(
+  items.filter((book) => book.series),
+  (book) => book.series!.name,
+)
 
-Array.from(bySeries.entries()).map(([series, books]) =>
-  console.log(`${series}: ${books.length} books`)
+Array.from(bySeries.entries())
+  .filter(([, books]) => books.length > 1)
+  .map(([series, books]) =>
+    console.log(`${series}: ${books.length} books`)
+  )
+```
+
+**Output:**
+```
+L'Assassin Royal: 12 books
+Primal Hunter: 4 books
+Dungeon Crawler Carl: 6 books
+Dans la toile du temps: 3 books
+Fondation: 7 books
+```
+
+### Catalog: bestsellers by category
+
+```typescript
+import { fetchCatalog } from 'audible-api-ts'
+
+const { items } = await fetchCatalog(credentials, {
+  categoryId: '18580628011',
+  sortBy: 'BestSellers',
+  numResults: 10,
+})
+
+items.map((book, i) => {
+  const r = book.rating?.overallDistribution
+  console.log(
+    `${i + 1}. ${book.title} — ${r?.averageRating?.toFixed(1)}/5 ` +
+    `(${r?.numRatings} votes) — ${book.authors.join(', ')}`
+  )
+})
+```
+
+**Output:**
+```
+1. Project Hail Mary — 4.9/5 (82341 votes) — Andy Weir
+2. Dune — 4.7/5 (45210 votes) — Frank Herbert
+3. The Hitchhiker's Guide to the Galaxy — 4.6/5 (38102 votes) — Douglas Adams
+```
+
+### Catalog: search by keyword
+
+```typescript
+const { items } = await fetchCatalog(credentials, {
+  categoryId: '18580628011',
+  keywords: 'robot',
+  numResults: 5,
+})
+
+items.map((book) =>
+  console.log(`${book.title} — ${book.authors.join(', ')} — ${book.language}`)
 )
 ```
 
-### Calculate total listening time
-
-```typescript
-const { items } = await fetchLibrary(credentials)
-
-const totalMinutes = items.reduce((sum, book) => sum + book.durationMinutes, 0)
-const hours = Math.floor(totalMinutes / 60)
-const days = Math.floor(hours / 24)
-
-console.log(`Total library: ${hours} hours (${days} days)`)
+**Output:**
+```
+Les robots — Isaac Asimov — french
+Un océan de rouille — Christopher Robert Cargill — french
 ```
 
 ## Verifying Connection
@@ -99,13 +318,3 @@ try {
 <Aside type="tip">
   `verifyConnection` makes a minimal API call (1 item, 1 page) to check that the credentials work. Use it to show connection status in your UI without fetching the full library.
 </Aside>
-
-## Response Groups
-
-The library automatically requests these data groups from the Audible API:
-
-- `product_details` — Title, ASIN, release date
-- `contributors` — Authors and narrators
-- `media` — Cover images
-- `product_attrs` — Publisher, language, series
-- `listening_status` — Finish status and progress
