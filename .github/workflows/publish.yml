@@ -22,10 +22,12 @@ jobs:
         with:
           bun-version: latest
 
+      - run: npm install -g npm@latest
+
       - run: bun install
 
       - name: Build
         run: bun run build
 
       - name: Publish
-        run: npm publish --access public
+        run: npm publish --provenance --access public
