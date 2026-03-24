@@ -29,6 +29,7 @@ export default defineConfig({
           items: [
             { label: 'Authentication', slug: 'guides/authentication' },
             { label: 'Library & Wishlist', slug: 'guides/library' },
+            { label: 'Catalog Search', slug: 'guides/catalog' },
             { label: 'Token Refresh', slug: 'guides/token-refresh' },
             { label: 'Locales', slug: 'guides/locales' },
           ],

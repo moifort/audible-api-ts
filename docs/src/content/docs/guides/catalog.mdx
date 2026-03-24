@@ -1,0 +1,195 @@
+---
+title: Catalog Search
+description: Search the Audible catalog by genre with sorting and filtering
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+## Basic Usage
+
+```typescript
+import { catalog } from 'audible-api-ts'
+
+const { items } = await catalog(credentials, {
+  category: 'science-fiction',
+  limit: 20,
+})
+
+items.map((book) => {
+  const r = book.rating?.overallDistribution
+  console.log(`${book.title} — ${r?.averageRating?.toFixed(1)}/5 (${r?.numRatings} votes)`)
+})
+```
+
+Credentials are auto-refreshed before each call — no need to call `refresh()` manually.
+
+## Genres
+
+Use genre names instead of opaque category IDs. The library resolves them per locale automatically.
+
+### Main Genres
+
+`'science-fiction'`, `'fantasy'`, `'science-fiction-fantasy'`, `'thriller'`, `'mystery'`, `'horror'`, `'romance'`, `'historical-fiction'`, `'literary-fiction'`, `'biography'`, `'history'`, `'business'`, `'self-help'`, `'science'`, `'children'`, `'young-adult'`, `'comedy'`, `'erotica'`, `'religion'`, `'sports'`, `'travel'`, `'lgbtq'`
+
+### Sub-Genres (slash notation)
+
+Use `parent/child` notation to search a specific sub-genre:
+
+| Parent | Sub-genres |
+|--------|-----------|
+| **science-fiction/** | `adventure`, `cyberpunk`, `dystopian`, `first-contact`, `galactic-empire`, `genetic-engineering`, `military`, `post-apocalyptic`, `space-exploration`, `space-opera`, `adaptations` |
+| **fantasy/** | `action-adventure`, `dragons`, `epic`, `historical`, `urban-paranormal`, `adaptations` |
+| **thriller/** | `suspense`, `psychological`, `domestic`, `historical` |
+| **mystery/** | `amateur-sleuth`, `detective`, `historical`, `noir`, `private-investigator`, `traditional` |
+| **romance/** | `action-adventure`, `comedy`, `contemporary`, `fantasy`, `historical`, `paranormal`, `science-fiction`, `sports`, `suspense` |
+| **literary-fiction/** | `action-adventure`, `classics`, `coming-of-age`, `contemporary`, `drama`, `family-life`, `historical`, `sagas`, `sea-adventures`, `world-literature` |
+| **biography/** | `entertainment` |
+| **history/** | `europe` |
+| **children/** | `action-adventure` |
+| **young-adult/** | `literary-fiction`, `romance`, `science-fiction-fantasy`, `thriller` |
+
+```typescript
+// Space Opera only
+const { items } = await catalog(credentials, {
+  category: 'science-fiction/space-opera',
+  limit: 10,
+})
+
+// Epic Fantasy
+const { items: fantasy } = await catalog(credentials, {
+  category: 'fantasy/epic',
+  limit: 10,
+})
+```
+
+### Locale Support
+
+Genre IDs are mapped for **FR** and **US** (`com`) locales. If a genre is not mapped for your locale, use `categoryId` directly:
+
+```typescript
+// Using raw category ID for unsupported locale
+const { items } = await catalog(credentials, {
+  categoryId: '12345678011',
+  limit: 20,
+})
+```
+
+## Sort Options
+
+### API sorts (fast)
+
+These use the Audible API sort — single request, returns `limit` items instantly:
+
+| Sort | Description |
+|------|-------------|
+| `'Relevance'` (default) | Relevance according to Audible's algorithm |
+| `'BestSellers'` | Best selling audiobooks |
+| `'AvgRating'` | Highest average rating |
+| `'ReleaseDate'` | Oldest first |
+| `'-ReleaseDate'` | Newest first |
+| `'Title'` | Alphabetical order |
+
+```typescript
+// Latest releases
+const { items } = await catalog(credentials, {
+  category: 'science-fiction',
+  sortBy: '-ReleaseDate',
+  limit: 10,
+})
+```
+
+### Client sort (slow)
+
+| Sort | Description |
+|------|-------------|
+| `'MostVoted'` | Fetches **all pages** of the category (up to 1000 items), deduplicates, sorts by number of ratings desc then average rating desc, returns `limit` items |
+
+<Aside type="caution">
+  `MostVoted` fetches all pages of a category before sorting. This can take **10-60 seconds** depending on the category size. Use it when you need the truly most popular items, not just the first page.
+</Aside>
+
+```typescript
+// Top 20 most voted Science Fiction books
+const { items } = await catalog(credentials, {
+  category: 'science-fiction',
+  sortBy: 'MostVoted',
+  limit: 20,
+})
+
+items.map((book, i) => {
+  const r = book.rating?.overallDistribution
+  console.log(`${i + 1}. ${book.title} — ${r?.numRatings} votes, ${r?.averageRating?.toFixed(1)}/5`)
+})
+```
+
+**Output:**
+```
+1. L'apprenti assassin — 4453 votes, 4.8/5
+2. Esperanza 64 — 2707 votes, 4.6/5
+3. L'assassin du roi — 2616 votes, 4.8/5
+4. Dune — 2112 votes, 4.6/5
+5. Alien — 1636 votes, 4.7/5
+```
+
+## Limit
+
+`limit` controls how many items are returned. Default is `50`.
+
+```typescript
+// Get 5 items
+const { items } = await catalog(credentials, {
+  category: 'thriller',
+  limit: 5,
+})
+
+// Get all items in the category (MostVoted sorts them by popularity)
+const { items: all } = await catalog(credentials, {
+  category: 'science-fiction/cyberpunk',
+  sortBy: 'MostVoted',
+  limit: 'all',
+})
+```
+
+## Filtering
+
+### By keyword
+
+```typescript
+const { items } = await catalog(credentials, {
+  category: 'science-fiction',
+  keywords: 'robot',
+  limit: 10,
+})
+```
+
+### By author
+
+```typescript
+const { items } = await catalog(credentials, {
+  category: 'science-fiction',
+  author: 'Isaac Asimov',
+  limit: 10,
+})
+```
+
+### By narrator
+
+```typescript
+const { items } = await catalog(credentials, {
+  category: 'fantasy',
+  narrator: 'Tim Gerard Reynolds',
+  limit: 10,
+})
+```
+
+## Raw Category ID
+
+If you need a category not covered by the genre list, use `categoryId` directly:
+
+```typescript
+const { items } = await catalog(credentials, {
+  categoryId: '21229694031', // Space Opera FR
+  sortBy: 'BestSellers',
+  limit: 20,
+})
+```

@@ -1,6 +1,6 @@
 ---
-title: Library, Wishlist & Catalog
-description: Fetching audiobooks from your Audible library, wishlist, and the catalog
+title: Library & Wishlist
+description: Fetching audiobooks from your Audible library and wishlist
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -25,84 +25,6 @@ const { items, credentials } = await wishlist(credentials)
 
 Same API, same response shape — just a different data source.
 
-## Searching the Catalog
-
-Use genre names instead of opaque category IDs — the library resolves them per locale:
-
-```typescript
-import { catalog } from 'audible-api-ts'
-
-const { items } = await catalog(credentials, {
-  category: 'science-fiction',  // resolved to the correct ID per locale
-  limit: 20,                   // Relevance is the default sort
-})
-```
-
-### Available Genres
-
-`'science-fiction'`, `'fantasy'`, `'science-fiction-fantasy'`, `'thriller'`, `'mystery'`, `'horror'`, `'romance'`, `'historical-fiction'`, `'literary-fiction'`, `'biography'`, `'history'`, `'business'`, `'self-help'`, `'science'`, `'children'`, `'young-adult'`, `'comedy'`, `'erotica'`, `'religion'`, `'sports'`, `'travel'`, `'lgbtq'`
-
-#### Sub-genres
-
-Sub-genres use slash notation (`parent/sub-genre`) for more specific catalog searches:
-
-| Parent | Sub-genres |
-|--------|-----------|
-| `science-fiction` | `science-fiction/space-opera`, `science-fiction/cyberpunk`, `science-fiction/dystopian` |
-| `fantasy` | `fantasy/epic`, `fantasy/dragons`, `fantasy/urban-paranormal` |
-| `thriller` | `thriller/suspense`, `thriller/psychological` |
-| `mystery` | `mystery/detective`, `mystery/noir` |
-| `romance` | `romance/historical`, `romance/paranormal`, `romance/comedy` |
-| `literary-fiction` | `literary-fiction/classics`, `literary-fiction/world-literature` |
-
-```typescript
-// Search a specific sub-genre
-const { items } = await catalog(credentials, {
-  category: 'science-fiction/space-opera',
-  limit: 10,
-})
-```
-
-### Catalog Options
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `category` | `AudibleGenre` | — | Genre name (resolved per locale) |
-| `categoryId` | `string` | — | Raw Audible category ID (alternative to `category`) |
-| `sortBy` | `string` | `'Relevance'` | Sort order (see sort behavior below) |
-| `limit` | `number \| 'all'` | `50` | Max results to return. Use `'all'` to fetch everything |
-| `keywords` | `string` | — | Search term |
-| `author` | `string` | — | Filter by author name |
-| `narrator` | `string` | — | Filter by narrator name |
-
-### Sort Behavior
-
-There are two categories of sorts:
-
-**API sorts (fast)** — single request, returns `limit` items:
-
-| Sort | Description |
-|------|-------------|
-| `'Relevance'` | Default. Audible's relevance ranking |
-| `'BestSellers'` | Best-selling titles |
-| `'AvgRating'` | Highest average rating |
-| `'ReleaseDate'` | Newest releases first |
-| `'-ReleaseDate'` | Oldest releases first |
-| `'Title'` | Alphabetical by title |
-
-**Client sort (slow):**
-
-| Sort | Description |
-|------|-------------|
-| `'MostVoted'` | Fetches ALL pages (up to 1000 items), sorts by number of votes desc then average rating desc, returns `limit` items |
-
-<Aside type="caution">
-  `'MostVoted'` can take **10-60 seconds** on large categories because it must fetch every page from the API before sorting client-side. Prefer API sorts like `'Relevance'` or `'BestSellers'` for fast results.
-</Aside>
-
-<Aside type="tip">
-  Use `category` for convenience — genre names work across locales. Use `categoryId` only if you need a specific subcategory not covered by the genre list.
-</Aside>
 
 ## The AudibleItem
 
@@ -300,52 +222,6 @@ Primal Hunter: 4 books
 Dungeon Crawler Carl: 6 books
 Dans la toile du temps: 3 books
 Fondation: 7 books
-```
-
-### Catalog: bestsellers by category
-
-```typescript
-import { catalog } from 'audible-api-ts'
-
-const { items } = await catalog(credentials, {
-  category: 'science-fiction',
-  limit: 10,
-})
-
-items.map((book, i) => {
-  const r = book.rating?.overallDistribution
-  console.log(
-    `${i + 1}. ${book.title} — ${r?.averageRating?.toFixed(1)}/5 ` +
-    `(${r?.numRatings} votes) — ${book.authors.join(', ')}`
-  )
-})
-```
-
-**Output:**
-```
-1. L'apprenti assassin — 4.8/5 (4453 votes) — Robin Hobb
-2. Dune — 4.6/5 (2112 votes) — Frank Herbert
-3. Projet Dernière chance — 4.7/5 (832 votes) — Andy Weir
-```
-
-### Catalog: search by keyword
-
-```typescript
-const { items } = await catalog(credentials, {
-  category: 'science-fiction',
-  keywords: 'robot',
-  limit: 5,
-})
-
-items.map((book) =>
-  console.log(`${book.title} — ${book.authors.join(', ')} — ${book.language}`)
-)
-```
-
-**Output:**
-```
-Les robots — Isaac Asimov — french
-Un océan de rouille — Christopher Robert Cargill — french
 ```
 
 ## Verifying Connection

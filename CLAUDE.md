@@ -26,7 +26,8 @@ When modifying the public API (functions, types, options), **all** of the follow
 - `docs/src/content/docs/index.mdx` — Landing page Quick Example
 - `docs/src/content/docs/getting-started.mdx` — Installation + first usage
 - `docs/src/content/docs/guides/authentication.mdx` — Auth flow guide
-- `docs/src/content/docs/guides/library.mdx` — Library, Wishlist & Catalog guide
+- `docs/src/content/docs/guides/library.mdx` — Library & Wishlist guide
+- `docs/src/content/docs/guides/catalog.mdx` — Catalog search guide (genres, sub-genres, sorting)
 - `docs/src/content/docs/guides/token-refresh.mdx` — Token refresh guide
 - `docs/src/content/docs/guides/locales.mdx` — Locales guide
 - `docs/src/content/docs/reference/api.mdx` — Full API reference
