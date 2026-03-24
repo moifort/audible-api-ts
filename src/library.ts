@@ -6,6 +6,7 @@ const RESPONSE_GROUPS =
 
 /**
  * Fetch the user's entire Audible library with automatic pagination.
+ * Credentials are auto-refreshed if expired.
  *
  * @returns All library items and the (potentially refreshed) credentials
  */
@@ -14,6 +15,7 @@ export const library = async (credentials: AudibleCredentials) =>
 
 /**
  * Fetch the user's entire Audible wishlist with automatic pagination.
+ * Credentials are auto-refreshed if expired.
  *
  * @returns All wishlist items and the (potentially refreshed) credentials
  */
@@ -22,6 +24,7 @@ export const wishlist = async (credentials: AudibleCredentials) =>
 
 /**
  * Verify that credentials are valid by making a minimal API call.
+ * Credentials are auto-refreshed if expired.
  *
  * @throws If credentials are invalid or expired
  */

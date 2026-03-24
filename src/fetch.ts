@@ -1,17 +1,25 @@
 import type { z } from 'zod'
+import { refresh } from './client.js'
 import { AUDIBLE_LOCALES } from './locales.js'
 import { type audibleRatingSchema, audibleRawItemSchema } from './schemas.js'
 import { signRequest } from './signing.js'
 import type { AudibleCredentials, AudibleItem, AudibleRating, RatingDistribution } from './types.js'
 
 const PAGE_SIZE = 50
+const REFRESH_BUFFER_MS = 5 * 60 * 1000
+
+const ensureFresh = async (credentials: AudibleCredentials) =>
+  credentials.expiresAt.getTime() - Date.now() < REFRESH_BUFFER_MS
+    ? refresh(credentials)
+    : credentials
 
 export const audibleFetch = async <T>(
   path: string,
   credentials: AudibleCredentials,
   query?: Record<string, string>,
 ) => {
-  const config = AUDIBLE_LOCALES[credentials.locale]
+  const fresh = await ensureFresh(credentials)
+  const config = AUDIBLE_LOCALES[fresh.locale]
   const fullPath = `/1.0${path}`
   const queryString = query
     ? `?${Object.entries(query)
@@ -20,7 +28,7 @@ export const audibleFetch = async <T>(
     : ''
   const signPath = `${fullPath}${queryString}`
 
-  const headers = signRequest('GET', signPath, '', credentials)
+  const headers = signRequest('GET', signPath, '', fresh)
 
   const fetchUrl = `https://api.audible.${config.domain}${fullPath}${queryString}`
 
@@ -30,7 +38,7 @@ export const audibleFetch = async <T>(
     throw new Error(`Audible API error: ${response.status} ${response.statusText} (${path})`)
   }
 
-  return (await response.json()) as T
+  return { data: (await response.json()) as T, credentials: fresh }
 }
 
 const extractItems = (response: Record<string, unknown>): unknown[] =>
@@ -75,18 +83,13 @@ const toRating = (raw: z.infer<typeof audibleRatingSchema>): AudibleRating | und
     : undefined
 
 export const toAudibleItem = (item: z.infer<typeof audibleRawItemSchema>): AudibleItem => ({
-  // Identity
   asin: item.asin,
   title: item.title,
   subtitle: item.subtitle,
   isbn: item.isbn,
   sku: item.sku,
-
-  // People
   authors: item.authors.map(({ name }) => name),
   narrators: item.narrators.map(({ name }) => name),
-
-  // Content
   durationMinutes: item.runtime_length_min,
   publisher: item.publisher_name,
   language: item.language,
@@ -100,8 +103,6 @@ export const toAudibleItem = (item: z.infer<typeof audibleRawItemSchema>): Audib
   contentType: item.content_type,
   contentDeliveryType: item.content_delivery_type,
   programParticipation: item.program_participation,
-
-  // Classification
   series: item.series[0]
     ? {
         name: item.series[0].title,
@@ -113,11 +114,7 @@ export const toAudibleItem = (item: z.infer<typeof audibleRawItemSchema>): Audib
     categories: ladder.ladder.map(({ id, name }) => ({ id, name })),
   })),
   keywords: [...item.platinum_keywords, ...item.thesaurus_subject_keywords],
-
-  // Rating
   rating: toRating(item.rating),
-
-  // Listening
   listeningStatus: item.listening_status
     ? {
         finishedAt: item.listening_status.finished_at_timestamp
@@ -130,8 +127,6 @@ export const toAudibleItem = (item: z.infer<typeof audibleRawItemSchema>): Audib
     : undefined,
   purchaseDate: item.purchase_date ? new Date(item.purchase_date) : undefined,
   dateAdded: item.library_status?.date_added ? new Date(item.library_status.date_added) : undefined,
-
-  // Relationships
   relationships: item.relationships.map((rel) => ({
     asin: rel.asin,
     relationshipToProduct: rel.relationship_to_product ?? '',
@@ -140,11 +135,7 @@ export const toAudibleItem = (item: z.infer<typeof audibleRawItemSchema>): Audib
     sort: rel.sort,
     url: rel.url,
   })),
-
-  // Flags
   isAdultProduct: item.is_adult_product,
-
-  // Images
   productImages: item.product_images,
   socialMediaImages: item.social_media_images,
 })
@@ -159,16 +150,20 @@ export const fetchAllPages = async (
   accumulated: AudibleItem[] = [],
   page = 1,
 ): Promise<{ items: AudibleItem[]; credentials: AudibleCredentials }> => {
-  const response = await audibleFetch<Record<string, unknown>>(path, credentials, {
-    response_groups: responseGroups,
-    num_results: String(PAGE_SIZE),
-    page: String(page),
-  })
+  const { data: response, credentials: fresh } = await audibleFetch<Record<string, unknown>>(
+    path,
+    credentials,
+    {
+      response_groups: responseGroups,
+      num_results: String(PAGE_SIZE),
+      page: String(page),
+    },
+  )
 
   const rawItems = extractItems(response)
   const items = [...accumulated, ...parseItems(rawItems)]
 
   return rawItems.length < PAGE_SIZE
-    ? { items, credentials }
-    : fetchAllPages(path, credentials, responseGroups, items, page + 1)
+    ? { items, credentials: fresh }
+    : fetchAllPages(path, fresh, responseGroups, items, page + 1)
 }

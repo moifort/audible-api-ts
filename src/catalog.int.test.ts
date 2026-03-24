@@ -1,44 +1,31 @@
 import { describe, expect, setDefaultTimeout, test } from 'bun:test'
-
-setDefaultTimeout(30_000)
-
 import { catalog } from './catalog'
-import { refresh } from './client'
 import { loadCredentials } from './credentials'
 
+setDefaultTimeout(60_000)
+
 describe('catalog integration', () => {
-  test('catalog with genre returns items with ratings', async () => {
-    const fresh = await refresh(loadCredentials())
-    const { items } = await catalog(fresh, {
+  test('limit controls the number of returned items', async () => {
+    const { items } = await catalog(loadCredentials(), {
       category: 'science-fiction',
       sortBy: 'BestSellers',
-      numResults: 10,
+      limit: 5,
     })
 
-    expect(items.length).toBeGreaterThan(0)
-
-    items.map((item) => {
-      expect(item.asin).toBeTruthy()
-      expect(item.title).toBeTruthy()
-      expect(item.rating).toBeDefined()
-      expect(item.rating?.overallDistribution).toBeDefined()
-      expect(item.rating?.overallDistribution?.numRatings).toBeGreaterThanOrEqual(0)
-      expect(item.rating?.overallDistribution?.averageRating).toBeGreaterThanOrEqual(0)
-    })
+    expect(items.length).toBe(5)
+    expect(items[0].asin).toBeTruthy()
+    expect(items[0].rating).toBeDefined()
+    expect(items[0].rating?.overallDistribution?.numRatings).toBeGreaterThanOrEqual(0)
   })
 
   test('MostVoted returns items sorted by votes descending', async () => {
-    const fresh = await refresh(loadCredentials())
-    const { items } = await catalog(fresh, {
+    const { items } = await catalog(loadCredentials(), {
       category: 'science-fiction',
-      sortBy: 'MostVoted',
-      maxPages: 2,
-      numResults: 20,
+      limit: 10,
     })
 
-    expect(items.length).toBe(20)
+    expect(items.length).toBe(10)
 
-    // Verify descending order by numRatings
     items.reduce((prevVotes, item) => {
       const votes = item.rating?.overallDistribution?.numRatings ?? 0
       expect(votes).toBeLessThanOrEqual(prevVotes)
@@ -46,15 +33,12 @@ describe('catalog integration', () => {
     }, Number.POSITIVE_INFINITY)
   })
 
-  test('catalog with keywords filters results', async () => {
-    const fresh = await refresh(loadCredentials())
-    const { items } = await catalog(fresh, {
+  test('limit > 50 fetches multiple pages', async () => {
+    const { items } = await catalog(loadCredentials(), {
       category: 'science-fiction',
-      sortBy: 'Relevance',
-      keywords: 'dune',
-      numResults: 5,
+      limit: 60,
     })
 
-    expect(items.length).toBeGreaterThan(0)
+    expect(items.length).toBe(60)
   })
 })

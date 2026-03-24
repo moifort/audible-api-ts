@@ -146,12 +146,10 @@ export type CatalogOptions = {
     | 'ReleaseDate'
     | '-ReleaseDate'
     | 'Title'
+  limit?: number | 'all'
   keywords?: string
   author?: string
   narrator?: string
-  numResults?: number
-  page?: number
-  maxPages?: number
 }
 
 /** PKCE auth session — returned by generateLoginUrl, passed back to registerDevice */
