@@ -29,7 +29,7 @@ Use genre names instead of opaque category IDs. The library resolves them per lo
 
 ### Main Genres
 
-`'science-fiction'`, `'fantasy'`, `'science-fiction-fantasy'`, `'thriller'`, `'mystery'`, `'horror'`, `'romance'`, `'historical-fiction'`, `'literary-fiction'`, `'biography'`, `'history'`, `'business'`, `'self-help'`, `'science'`, `'children'`, `'young-adult'`, `'comedy'`, `'erotica'`, `'religion'`, `'sports'`, `'travel'`, `'lgbtq'`
+`'science-fiction'`, `'fantasy'`, `'science-fiction-fantasy'`, `'mystery-thriller-suspense'`, `'thriller'`, `'mystery'`, `'crime-fiction'`, `'horror'`, `'romance'`, `'historical-fiction'`, `'literary-fiction'`, `'biography'`, `'history'`, `'business'`, `'self-help'`, `'science'`, `'children'`, `'young-adult'`, `'comedy'`, `'erotica'`, `'religion'`, `'sports'`, `'travel'`, `'lgbtq'`
 
 ### Sub-Genres (slash notation)
 
@@ -38,15 +38,15 @@ Use `parent/child` notation to search a specific sub-genre:
 | Parent | Sub-genres |
 |--------|-----------|
 | **science-fiction/** | `adventure`, `cyberpunk`, `dystopian`, `first-contact`, `galactic-empire`, `genetic-engineering`, `military`, `post-apocalyptic`, `space-exploration`, `space-opera`, `adaptations` |
-| **fantasy/** | `action-adventure`, `dragons`, `epic`, `historical`, `urban-paranormal`, `adaptations` |
+| **fantasy/** | `action-adventure`, `dragons`, `epic`, `historical`, `sword-sorcery`, `urban-paranormal`, `adaptations` |
 | **thriller/** | `suspense`, `psychological`, `domestic`, `historical` |
-| **mystery/** | `amateur-sleuth`, `detective`, `historical`, `noir`, `private-investigator`, `traditional` |
+| **mystery/** | `amateur-sleuth`, `cozy`, `detective`, `hard-boiled`, `historical`, `noir`, `police-procedural`, `private-investigator`, `traditional` |
 | **romance/** | `action-adventure`, `comedy`, `contemporary`, `fantasy`, `historical`, `paranormal`, `science-fiction`, `sports`, `suspense` |
-| **literary-fiction/** | `action-adventure`, `classics`, `coming-of-age`, `contemporary`, `drama`, `family-life`, `historical`, `sagas`, `sea-adventures`, `world-literature` |
+| **literary-fiction/** | `action-adventure`, `classics`, `coming-of-age`, `contemporary`, `drama`, `family-life`, `fiction`, `historical`, `sagas`, `sea-adventures`, `world-literature` |
 | **biography/** | `entertainment` |
 | **history/** | `europe` |
-| **children/** | `action-adventure` |
-| **young-adult/** | `literary-fiction`, `romance`, `science-fiction-fantasy`, `thriller` |
+| **children/** | `action-adventure`, `mystery`, `science-fiction-fantasy`, `fantasy`, `science-fiction` |
+| **young-adult/** | `literary-fiction`, `romance`, `science-fiction-fantasy`, `fantasy`, `science-fiction`, `thriller` |
 
 ```typescript
 // Space Opera only
@@ -64,7 +64,7 @@ const { items: fantasy } = await catalog(credentials, {
 
 ### Locale Support
 
-Genre IDs are mapped for **FR** and **US** (`com`) locales. If a genre is not mapped for your locale, use `categoryId` directly:
+Genre IDs are mapped for **FR** and **US** (`com`) locales, and every one of them is checked against the live catalogue by name. A few sub-genres exist on one store only (`science-fiction/galactic-empire` has no US shelf). If a genre is not mapped for your locale, use `categoryId` directly:
 
 ```typescript
 // Using raw category ID for unsupported locale
