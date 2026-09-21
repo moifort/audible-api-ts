@@ -1,6 +1,6 @@
 {
   "name": "audible-api-ts",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A fully typed TypeScript client for the Audible API — authentication, library, wishlist, and catalog search",
   "type": "module",
   "main": "./dist/index.js",
