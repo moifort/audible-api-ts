@@ -3,6 +3,8 @@ title: Types Reference
 description: All TypeScript types exported by audible-api-ts
 ---
 
+import { Aside } from '@astrojs/starlight/components';
+
 ## AudibleLocale
 
 String union of all supported Audible marketplace identifiers.
@@ -136,9 +138,34 @@ type RatingDistribution = {
 
 ---
 
+## LastPosition
+
+Where the reader last stopped in a library item, returned by `lastPositions()`.
+
+```typescript
+type LastPosition = {
+  asin: string
+  positionMs: number      // Milliseconds from the start of the recording
+  lastUpdatedAt: Date     // When the player last saved the position, in UTC
+}
+```
+
+**Example:**
+```typescript
+const { positions } = await lastPositions(credentials, ['B0H8T336DS'])
+// positions[0].positionMs      → 8275705 (2h18 in)
+// positions[0].lastUpdatedAt   → 2026-09-16T20:55:15.357Z
+```
+
+---
+
 ## ListeningStatus
 
-Listening progress for a library item.
+Listening progress for a library item, as the library endpoint reports it.
+
+<Aside type="caution">
+  `percentComplete` and `timeRemainingSeconds` are often stale — a title two hours in can report 0%. For where the reader really stands, use [`lastPositions`](/audible-api-ts/reference/api/#lastpositionscredentials-asins).
+</Aside>
 
 ```typescript
 type ListeningStatus = {

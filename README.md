@@ -118,6 +118,7 @@ Available genres: `'science-fiction'`, `'fantasy'`, `'thriller'`, `'romance'`, `
 | `refresh(credentials)` | Manually refresh an access token (usually not needed — auto-refresh is built-in) |
 | `library(credentials)` | Fetch all library audiobooks |
 | `wishlist(credentials)` | Fetch all wishlist audiobooks |
+| `lastPositions(credentials, asins)` | Where the reader last stopped in each title, the reliable progress signal |
 | `catalog(credentials, options)` | Search catalog by category with sorting |
 | `verify(credentials)` | Check if credentials are valid |
 

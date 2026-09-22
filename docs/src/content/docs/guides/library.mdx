@@ -176,6 +176,33 @@ Total duration: 2156 hours
   Les Guerriers du silence — 12% (21h remaining)
 ```
 
+### Where the reader really stands
+
+The library's `listeningStatus.percentComplete` is often stale. `lastPositions` asks the player's own saved position, in batches of 25:
+
+```typescript
+import { lastPositions, library } from 'audible-api-ts'
+
+const { items } = await library(credentials)
+const { positions } = await lastPositions(credentials, items.map(({ asin }) => asin))
+
+const byAsin = new Map(positions.map((position) => [position.asin, position]))
+const started = items.filter((book) => {
+  const position = byAsin.get(book.asin)
+  return position && position.positionMs > 5 * 60 * 1000 && !book.listeningStatus?.isFinished
+})
+
+started.map((book) =>
+  console.log(`${book.title} — ${Math.floor(byAsin.get(book.asin)!.positionMs / 60000)} min in`)
+)
+```
+
+**Output:**
+```
+Solo Leveling — 138 min in
+Primal Hunter — 568 min in
+```
+
 ### Filter by category
 
 ```typescript

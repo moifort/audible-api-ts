@@ -47,6 +47,24 @@ const relationshipSchema = z.object({
 })
 
 /** Zod schema for parsing raw Audible API item responses */
+/** `GET /1.0/annotations/lastpositions`: where the reader last stopped in each
+ *  asked title. A title never opened answers `DoesNotExist` and nothing else. */
+export const lastPositionsSchema = z.object({
+  asin_last_position_heard_annots: z
+    .array(
+      z.object({
+        asin: z.string(),
+        last_position_heard: z.object({
+          status: z.string(),
+          position_ms: z.number().nullish(),
+          last_updated: z.string().nullish(),
+        }),
+      }),
+    )
+    .nullish()
+    .transform((v) => v ?? []),
+})
+
 export const audibleRawItemSchema = z.object({
   // Identity
   asin: z.string().min(1),

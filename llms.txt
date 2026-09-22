@@ -33,7 +33,7 @@ const credentials = await register(code, session)
 
 ### refresh(credentials: AudibleCredentials): Promise<AudibleCredentials>
 
-Manually refresh an access token. Usually not needed — all API functions (`library`, `wishlist`, `catalog`, `verify`) auto-refresh credentials before each call.
+Manually refresh an access token. Usually not needed — all API functions (`library`, `wishlist`, `lastPositions`, `catalog`, `verify`) auto-refresh credentials before each call.
 
 ```typescript
 import { refresh } from 'audible-api-ts'
@@ -57,6 +57,17 @@ Fetch the user's entire Audible wishlist with automatic pagination. Credentials 
 ```typescript
 import { wishlist } from 'audible-api-ts'
 const { items } = await wishlist(credentials)
+```
+
+### lastPositions(credentials: AudibleCredentials, asins: readonly string[]): Promise<{ positions: LastPosition[], credentials }>
+
+Fetch where the reader last stopped in each of the given titles, asked in batches of 25 (the most Audible accepts per call). A title never opened is left out. This is the reliable progress signal: `listeningStatus.percentComplete` on a library item is often stale (0 on a title two hours in), while the position is what the player itself saves. Credentials are auto-refreshed before the call.
+
+```typescript
+import { lastPositions, library } from 'audible-api-ts'
+const { items } = await library(credentials)
+const { positions } = await lastPositions(credentials, items.map(({ asin }) => asin))
+const inProgress = positions.filter(({ positionMs }) => positionMs > 5 * 60 * 1000)
 ```
 
 ### catalog(credentials: AudibleCredentials, options: CatalogOptions): Promise<{ items: AudibleItem[], credentials }>
@@ -170,6 +181,18 @@ Returned by library(), wishlist(), and catalog().
   numThreeStarRatings: number
   numTwoStarRatings: number
   numOneStarRatings: number
+}
+```
+
+### LastPosition
+
+Returned by lastPositions().
+
+```typescript
+{
+  asin: string
+  positionMs: number      // milliseconds from the start of the recording
+  lastUpdatedAt: Date     // when the player last saved the position, UTC
 }
 ```
 

@@ -114,6 +114,31 @@ items.map((book) =>
 
 ---
 
+### `lastPositions(credentials, asins)`
+
+Fetch where the reader last stopped in each of the given titles. Asked in batches of 25, the most Audible accepts per call; a title the reader never opened is left out of the answer. Credentials are auto-refreshed before the call.
+
+This is the reliable progress signal: `listeningStatus.percentComplete` on a library item is often stale — 0 on a title two hours in — while the position is what the player itself saves.
+
+```typescript
+const { items } = await library(credentials)
+const { positions } = await lastPositions(credentials, items.map(({ asin }) => asin))
+
+positions.map(({ asin, positionMs, lastUpdatedAt }) =>
+  console.log(`${asin} — ${Math.floor(positionMs / 60000)} min in, last heard ${lastUpdatedAt.toDateString()}`)
+)
+```
+
+**Parameters:**
+| Name | Type | Description |
+|------|------|-------------|
+| `credentials` | `AudibleCredentials` | Valid credentials |
+| `asins` | `readonly string[]` | The titles to ask about, any number |
+
+**Returns:** `Promise<{ positions: LastPosition[], credentials: AudibleCredentials }>`
+
+---
+
 ### `catalog(credentials, options)`
 
 Search the Audible catalog by category with optional filters. Credentials are auto-refreshed before the call.

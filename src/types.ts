@@ -80,6 +80,19 @@ export type ListeningStatus = {
   timeRemainingSeconds?: number
 }
 
+/** Where the reader last stopped in a library item.
+ *
+ *  This is the reliable progress signal: `ListeningStatus.percentComplete` on a
+ *  library item is often stale (0 on a title two hours in), while the position
+ *  is what the player itself saves. */
+export type LastPosition = {
+  asin: string
+  /** Milliseconds from the start of the recording. */
+  positionMs: number
+  /** When the player last saved the position, in UTC. */
+  lastUpdatedAt: Date
+}
+
 /** An audiobook item from Audible */
 export type AudibleItem = {
   // Identity

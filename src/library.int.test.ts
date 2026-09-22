@@ -1,6 +1,6 @@
 import { describe, expect, setDefaultTimeout, test } from 'bun:test'
 import { loadCredentials } from './credentials'
-import { library, wishlist } from './library'
+import { lastPositions, library, wishlist } from './library'
 
 setDefaultTimeout(30_000)
 
@@ -24,6 +24,22 @@ describe('library integration', () => {
     if (first.listeningStatus?.finishedAt) {
       expect(first.listeningStatus.finishedAt).toBeInstanceOf(Date)
     }
+  })
+
+  test('lastPositions answers for the library titles the reader opened', async () => {
+    const credentials = loadCredentials()
+    const { items } = await library(credentials)
+    const { positions } = await lastPositions(
+      credentials,
+      items.map(({ asin }) => asin),
+    )
+
+    expect(positions.length).toBeLessThanOrEqual(items.length)
+    positions.map((position) => {
+      expect(position.asin).toBeTruthy()
+      expect(position.positionMs).toBeGreaterThanOrEqual(0)
+      expect(position.lastUpdatedAt).toBeInstanceOf(Date)
+    })
   })
 
   test('wishlist returns an array with valid first item', async () => {
