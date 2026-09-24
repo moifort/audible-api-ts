@@ -4,6 +4,7 @@ import { AUDIBLE_LOCALES } from './locales.js'
 import { type audibleRatingSchema, audibleRawItemSchema } from './schemas.js'
 import { signRequest } from './signing.js'
 import type { AudibleCredentials, AudibleItem, AudibleRating, RatingDistribution } from './types.js'
+import { toQueryString } from './utils.js'
 
 const PAGE_SIZE = 50
 const REFRESH_BUFFER_MS = 5 * 60 * 1000
@@ -21,11 +22,8 @@ export const audibleFetch = async <T>(
   const fresh = await ensureFresh(credentials)
   const config = AUDIBLE_LOCALES[fresh.locale]
   const fullPath = `/1.0${path}`
-  const queryString = query
-    ? `?${Object.entries(query)
-        .map(([k, v]) => `${k}=${v}`)
-        .join('&')}`
-    : ''
+  // The signed path and the fetched URL must be the same encoded string.
+  const queryString = query ? `?${toQueryString(query)}` : ''
   const signPath = `${fullPath}${queryString}`
 
   const headers = signRequest('GET', signPath, '', fresh)

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { Buffer } from 'node:buffer'
-import { base64nopad, base64url, toHexString } from './utils'
+import { base64nopad, base64url, toHexString, toQueryString } from './utils'
 
 describe('base64url', () => {
   test('replaces + with - and / with _ and strips padding', () => {
@@ -42,5 +42,19 @@ describe('toHexString', () => {
 
   test('handles special characters', () => {
     expect(toHexString('#')).toBe('23')
+  })
+})
+
+describe('toQueryString', () => {
+  test('encodes spaces, accents and reserved characters', () => {
+    expect(toQueryString({ author: 'Matt Dinniman', keywords: 'Nous sommes Légion & co' })).toBe(
+      'author=Matt%20Dinniman&keywords=Nous%20sommes%20L%C3%A9gion%20%26%20co',
+    )
+  })
+
+  test('keeps the commas of a response group list readable to Audible', () => {
+    expect(toQueryString({ response_groups: 'series,rating' })).toBe(
+      'response_groups=series%2Crating',
+    )
   })
 })
