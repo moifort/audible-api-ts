@@ -17,6 +17,17 @@ describe('search integration', () => {
     expect(items.some((item) => item.authors.includes('Frank Herbert'))).toBe(true)
   })
 
+  test('returns the most relevant results, the first page of them', async () => {
+    const credentials = loadCredentials()
+    const [{ items: first }, { items: page }] = await Promise.all([
+      search(credentials, { keywords: 'Dune Frank Herbert', limit: 1 }),
+      search(credentials, { keywords: 'Dune Frank Herbert', limit: 10 }),
+    ])
+
+    expect(first).toHaveLength(1)
+    expect(page[0]?.asin).toBe(first[0].asin)
+  })
+
   test('refuses a search with nothing to search for', async () => {
     expect(search(loadCredentials(), {})).rejects.toThrow()
   })

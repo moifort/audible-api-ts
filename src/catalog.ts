@@ -9,6 +9,10 @@ const CATALOG_RESPONSE_GROUPS =
 
 const PAGE_SIZE = 50
 
+/** The catalog counts its pages from 0, unlike the library, which counts from 1:
+ *  asking the catalog for page 1 skips the most relevant results. */
+const FIRST_PAGE = 0
+
 const extractItems = (response: Record<string, unknown>): unknown[] =>
   Array.isArray(response.products)
     ? response.products
@@ -25,7 +29,7 @@ const fetchCatalogPages = async (
   options: CatalogOptions,
   maxPages: number,
   accumulated: AudibleItem[] = [],
-  page = 1,
+  page = FIRST_PAGE,
 ): Promise<{ items: AudibleItem[]; credentials: AudibleCredentials }> => {
   const { data: response, credentials: fresh } = await audibleFetch<Record<string, unknown>>(
     '/catalog/products',
@@ -45,7 +49,7 @@ const fetchCatalogPages = async (
   const rawItems = extractItems(response)
   const items = [...accumulated, ...parseResponse(response)]
 
-  return rawItems.length < PAGE_SIZE || page >= maxPages
+  return rawItems.length < PAGE_SIZE || page - FIRST_PAGE + 1 >= maxPages
     ? { items, credentials: fresh }
     : fetchCatalogPages(fresh, categoryId, options, maxPages, items, page + 1)
 }
@@ -104,7 +108,7 @@ export const catalog = async (credentials: AudibleCredentials, options: CatalogO
       category_id: categoryId,
       products_sort_by: sortBy,
       num_results: String(limit === 'all' ? PAGE_SIZE : Math.min(limit, PAGE_SIZE)),
-      page: '1',
+      page: String(FIRST_PAGE),
       response_groups: CATALOG_RESPONSE_GROUPS,
       ...(options.keywords ? { keywords: options.keywords } : {}),
       ...(options.author ? { author: options.author } : {}),
@@ -135,7 +139,7 @@ export const search = async (credentials: AudibleCredentials, options: SearchOpt
     {
       products_sort_by: 'Relevance',
       num_results: String(Math.min(options.limit ?? 10, PAGE_SIZE)),
-      page: '1',
+      page: String(FIRST_PAGE),
       response_groups: CATALOG_RESPONSE_GROUPS,
       ...(options.keywords ? { keywords: options.keywords } : {}),
       ...(options.title ? { title: options.title } : {}),
