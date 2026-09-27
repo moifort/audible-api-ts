@@ -7,7 +7,7 @@
 
 **A fully typed TypeScript client for the Audible API.**
 
-Authentication, library, wishlist, catalog search — all with complete type safety. The first maintained TypeScript alternative to [mkb79/Audible](https://github.com/mkb79/Audible) (Python).
+Authentication, library, wishlist, catalog search and product lookup — all with complete type safety. The first maintained TypeScript alternative to [mkb79/Audible](https://github.com/mkb79/Audible) (Python).
 
 **[Documentation](https://moifort.github.io/audible-api-ts)**
 
@@ -100,6 +100,26 @@ items.map((book) => {
 })
 ```
 
+## Search and Product Lookup
+
+Search the whole catalog of the account's marketplace, without a category, or read one title by its ASIN — owned or not:
+
+```typescript
+import { product, search } from 'audible-api-ts'
+
+// Most relevant first; at least one of keywords, title, author or narrator
+const { items } = await search(credentials, {
+  title: 'Dungeon Crawler Carl',
+  author: 'Matt Dinniman',
+  limit: 20,
+})
+const third = items.find((book) => book.series?.position === 3)
+
+// undefined when the marketplace does not sell that ASIN
+const { item } = await product(credentials, 'B0934Y4DMW')
+```
+
+
 **Output:**
 ```
 L'apprenti assassin — 4453 ratings, 4.8/5
@@ -120,6 +140,8 @@ Available genres: `'science-fiction'`, `'fantasy'`, `'thriller'`, `'romance'`, `
 | `wishlist(credentials)` | Fetch all wishlist audiobooks |
 | `lastPositions(credentials, asins)` | Where the reader last stopped in each title, the reliable progress signal |
 | `catalog(credentials, options)` | Search catalog by category with sorting |
+| `search(credentials, options)` | Search the whole catalog by title, author, narrator or keywords |
+| `product(credentials, asin)` | Look one title up by its ASIN, owned or not |
 | `verify(credentials)` | Check if credentials are valid |
 
 See the **[full documentation](https://moifort.github.io/audible-api-ts)** for guides and API reference.

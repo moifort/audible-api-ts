@@ -1,6 +1,6 @@
 # audible-api-ts
 
-> A fully typed TypeScript client for the Audible API — authentication, library, wishlist, catalog search.
+> A fully typed TypeScript client for the Audible API — authentication, library, wishlist, catalog search, product lookup.
 
 ## Install
 
@@ -33,7 +33,7 @@ const credentials = await register(code, session)
 
 ### refresh(credentials: AudibleCredentials): Promise<AudibleCredentials>
 
-Manually refresh an access token. Usually not needed — all API functions (`library`, `wishlist`, `lastPositions`, `catalog`, `verify`) auto-refresh credentials before each call.
+Manually refresh an access token. Usually not needed — all API functions (`library`, `wishlist`, `lastPositions`, `catalog`, `search`, `product`, `verify`) auto-refresh credentials before each call.
 
 ```typescript
 import { refresh } from 'audible-api-ts'
@@ -86,6 +86,29 @@ const { items } = await catalog(credentials, {
 })
 ```
 
+### search(credentials: AudibleCredentials, options: SearchOptions): Promise<{ items: AudibleItem[], credentials }>
+
+Search the whole Audible catalog of the account's marketplace, without a category, most relevant first. At least one of `keywords`, `title`, `author` or `narrator` is required (throws otherwise). `limit` defaults to 10, at most 50. A marketplace also sells editions in other languages: filter on `item.language` when it matters. Credentials are auto-refreshed before the call.
+
+```typescript
+import { search } from 'audible-api-ts'
+const { items } = await search(credentials, {
+  title: 'Dungeon Crawler Carl',
+  author: 'Matt Dinniman',
+  limit: 20,
+})
+const third = items.find((book) => book.series?.position === 3)
+```
+
+### product(credentials: AudibleCredentials, asin: string): Promise<{ item: AudibleItem | undefined, credentials }>
+
+Look one audiobook up by its ASIN in the account's marketplace, whether or not the account owns it. `item` is undefined when the marketplace does not sell that ASIN (Audible answers an empty product rather than an error). Credentials are auto-refreshed before the call.
+
+```typescript
+import { product } from 'audible-api-ts'
+const { item } = await product(credentials, 'B0934Y4DMW')
+```
+
 ### verify(credentials: AudibleCredentials): Promise<void>
 
 Verify credentials are valid. Throws on invalid/expired credentials. Credentials are auto-refreshed before the call.
@@ -119,7 +142,7 @@ await verify(credentials)
 
 ### AudibleItem
 
-Returned by library(), wishlist(), and catalog().
+Returned by library(), wishlist(), catalog(), search() and product().
 
 ```typescript
 {
@@ -240,6 +263,18 @@ Returned by lastPositions().
   keywords?: string
   author?: string
   narrator?: string
+}
+```
+
+### SearchOptions
+
+```typescript
+{
+  keywords?: string
+  title?: string                // a series name matches its volumes
+  author?: string
+  narrator?: string
+  limit?: number                // most relevant first (default 10, at most 50)
 }
 ```
 

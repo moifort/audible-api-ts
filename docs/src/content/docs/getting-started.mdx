@@ -27,7 +27,7 @@ The Audible API uses a 3-step authentication flow:
 
 1. **Generate a login URL** — redirect the user to Amazon's login page
 2. **Register the device** — exchange the authorization code for credentials
-3. **Fetch data** — use credentials to access library, wishlist, and catalog
+3. **Fetch data** — use credentials to access library, wishlist, catalog search and product lookup
 
 ```typescript
 import {
@@ -132,6 +132,17 @@ items.map((book, i) => {
 1. Project Hail Mary — 4.9/5 (82341 votes)
 2. Dune — 4.7/5 (45210 votes)
 3. The Hitchhiker's Guide to the Galaxy — 4.6/5 (38102 votes)
+```
+
+## Search and Product Lookup
+
+Look through the whole catalog without a category, or read one title by its ASIN, owned or not:
+
+```typescript
+import { product, search } from 'audible-api-ts'
+
+const { items } = await search(credentials, { title: 'Dune', author: 'Frank Herbert', limit: 5 })
+const { item } = await product(credentials, items[0].asin) // undefined if not sold there
 ```
 
 ## Wishlist

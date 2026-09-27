@@ -184,6 +184,49 @@ items.map((book, i) => {
 
 ---
 
+### `search(credentials, options)`
+
+Search the whole catalog of the account's marketplace, without a category, most relevant first. Credentials are auto-refreshed before the call.
+
+```typescript
+const { items } = await search(credentials, {
+  title: 'Dungeon Crawler Carl',
+  author: 'Matt Dinniman',
+  limit: 20,
+})
+```
+
+A marketplace also sells editions in other languages: filter on `item.language` when it matters.
+
+**Parameters:**
+| Name | Type | Default | Description |
+|------|------|---------|-------------|
+| `credentials` | `AudibleCredentials` | — | Valid credentials |
+| `options.keywords` | `string` | — | Free search term |
+| `options.title` | `string` | — | Title filter (a series name matches its volumes) |
+| `options.author` | `string` | — | Author filter |
+| `options.narrator` | `string` | — | Narrator filter |
+| `options.limit` | `number` | `10` | Max results, at most 50 |
+
+At least one of `keywords`, `title`, `author` or `narrator` is required; the call throws otherwise.
+
+**Returns:** `Promise<{ items: AudibleItem[], credentials: AudibleCredentials }>`
+
+---
+
+### `product(credentials, asin)`
+
+Look one audiobook up by its ASIN in the account's marketplace, whether or not the account owns it. Credentials are auto-refreshed before the call.
+
+```typescript
+const { item } = await product(credentials, 'B0934Y4DMW')
+if (item) console.log(item.title, item.series?.position)
+```
+
+**Returns:** `Promise<{ item: AudibleItem | undefined, credentials: AudibleCredentials }>` — `item` is undefined when the marketplace does not sell that ASIN.
+
+---
+
 ### `verify(credentials)`
 
 Verify that credentials are valid by making a minimal API call. Credentials are auto-refreshed before the call.

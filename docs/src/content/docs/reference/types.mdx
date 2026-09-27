@@ -37,7 +37,7 @@ type AudibleCredentials = {
 
 ## AudibleItem
 
-An audiobook returned by `library()`, `wishlist()`, and `catalog()`.
+An audiobook returned by `library()`, `wishlist()`, `catalog()`, `search()` and `product()`.
 
 ```typescript
 type AudibleItem = {
@@ -289,6 +289,20 @@ await catalog(credentials, {
 ```
 
 ---
+
+## SearchOptions
+
+Options for `search()`. At least one of `keywords`, `title`, `author` or `narrator` is required.
+
+```typescript
+type SearchOptions = {
+  keywords?: string
+  title?: string    // a series name matches its volumes
+  author?: string
+  narrator?: string
+  limit?: number    // most relevant first (default 10, at most 50)
+}
+```
 
 ## AudibleGenre
 

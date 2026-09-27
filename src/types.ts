@@ -165,6 +165,16 @@ export type CatalogOptions = {
   narrator?: string
 }
 
+/** Options for searching the whole Audible catalog, without a category */
+export type SearchOptions = {
+  keywords?: string
+  title?: string
+  author?: string
+  narrator?: string
+  /** How many items to return, most relevant first (default 10, at most 50). */
+  limit?: number
+}
+
 /** PKCE auth session — returned by generateLoginUrl, passed back to registerDevice */
 export type AuthSession = {
   codeVerifier: string

@@ -3,7 +3,7 @@ title: audible-api-ts
 description: A fully typed TypeScript client for the Audible API
 template: splash
 hero:
-  tagline: The first fully typed TypeScript client for the Audible API. Authentication, library, wishlist, catalog search — all with complete type safety.
+  tagline: The first fully typed TypeScript client for the Audible API. Authentication, library, wishlist, catalog search, product lookup — all with complete type safety.
   actions:
     - text: Get Started
       link: /audible-api-ts/getting-started/
@@ -37,7 +37,7 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 ## Quick Example
 
 ```typescript
-import { login, register, library, catalog } from 'audible-api-ts'
+import { login, register, library, catalog, search, product } from 'audible-api-ts'
 
 // Authenticate
 const { loginUrl, session, cookies } = await login('com')
@@ -65,6 +65,10 @@ const { items: scifi } = await catalog(credentials, {
 scifi.map((book) =>
   console.log(`${book.title} — ${book.rating?.overallDistribution?.averageRating?.toFixed(1)}/5`)
 )
+
+// Or look through the whole catalog, and read one title by its ASIN
+const { items: carl } = await search(credentials, { title: 'Dungeon Crawler Carl', limit: 20 })
+const { item } = await product(credentials, carl[0].asin)
 ```
 
 **Output:**

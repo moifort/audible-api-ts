@@ -193,3 +193,22 @@ const { items } = await catalog(credentials, {
   limit: 20,
 })
 ```
+
+## Without a Category
+
+`search()` looks through the whole catalog of the account's marketplace, most relevant first, and `product()` reads one title by its ASIN, owned or not:
+
+```typescript
+import { product, search } from 'audible-api-ts'
+
+const { items } = await search(credentials, {
+  title: 'Dungeon Crawler Carl',
+  author: 'Matt Dinniman',
+  limit: 20,
+})
+// A marketplace also sells editions in other languages
+const third = items.find((book) => book.language === 'english' && book.series?.position === 3)
+
+// undefined when the marketplace does not sell that ASIN
+const { item } = await product(credentials, 'B0934Y4DMW')
+```
