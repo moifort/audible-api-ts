@@ -4,21 +4,27 @@ const nullToUndefined = <T>(v: T | null | undefined): T | undefined => v ?? unde
 
 const optionalString = z.string().nullish().transform(nullToUndefined)
 
+/** Amazon sends `null` for a field it has no value for as often as it leaves the
+ *  field out. A `.default()` only covers the second, so a null is read as absent
+ *  first and the default applies to both. */
+const absentIfNull = <T extends z.ZodTypeAny>(schema: T) =>
+  z.preprocess((v) => (v === null ? undefined : v), schema)
+
 const ratingDistributionSchema = z.object({
   average_rating: z.number(),
-  display_average_rating: z.string().default('0'),
-  display_stars: z.number().default(0),
+  display_average_rating: absentIfNull(z.string().default('0')),
+  display_stars: absentIfNull(z.number().default(0)),
   num_ratings: z.number(),
-  num_five_star_ratings: z.number().default(0),
-  num_four_star_ratings: z.number().default(0),
-  num_three_star_ratings: z.number().default(0),
-  num_two_star_ratings: z.number().default(0),
-  num_one_star_ratings: z.number().default(0),
+  num_five_star_ratings: absentIfNull(z.number().default(0)),
+  num_four_star_ratings: absentIfNull(z.number().default(0)),
+  num_three_star_ratings: absentIfNull(z.number().default(0)),
+  num_two_star_ratings: absentIfNull(z.number().default(0)),
+  num_one_star_ratings: absentIfNull(z.number().default(0)),
 })
 
 export const audibleRatingSchema = z
   .object({
-    num_reviews: z.number().default(0),
+    num_reviews: absentIfNull(z.number().default(0)),
     overall_distribution: ratingDistributionSchema.nullish(),
     performance_distribution: ratingDistributionSchema.nullish(),
     story_distribution: ratingDistributionSchema.nullish(),
@@ -26,15 +32,17 @@ export const audibleRatingSchema = z
   .nullish()
 
 const categoryLadderSchema = z.object({
-  root: z.string().default('Genres'),
-  ladder: z
-    .array(
-      z.object({
-        id: z.string(),
-        name: z.string(),
-      }),
-    )
-    .default([]),
+  root: absentIfNull(z.string().default('Genres')),
+  ladder: absentIfNull(
+    z
+      .array(
+        z.object({
+          id: z.string(),
+          name: z.string(),
+        }),
+      )
+      .default([]),
+  ),
 })
 
 const relationshipSchema = z.object({
@@ -74,11 +82,11 @@ export const audibleRawItemSchema = z.object({
   sku: optionalString,
 
   // People
-  authors: z.array(z.object({ name: z.string() })).default([]),
-  narrators: z.array(z.object({ name: z.string() })).default([]),
+  authors: absentIfNull(z.array(z.object({ name: z.string() })).default([])),
+  narrators: absentIfNull(z.array(z.object({ name: z.string() })).default([])),
 
   // Content
-  runtime_length_min: z.number().nonnegative().default(0),
+  runtime_length_min: absentIfNull(z.number().nonnegative().default(0)),
   publisher_name: optionalString,
   language: optionalString,
   release_date: optionalString,

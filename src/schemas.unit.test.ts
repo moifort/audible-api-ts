@@ -66,6 +66,39 @@ describe('audibleRawItemSchema', () => {
     expect(result.listening_status).toBeUndefined()
   })
 
+  test('reads a null where a default stands as the default', () => {
+    const result = audibleRawItemSchema.parse({
+      asin: 'B08G9PRS1K',
+      title: 'Test',
+      authors: null,
+      narrators: null,
+      runtime_length_min: null,
+      rating: {
+        num_reviews: null,
+        overall_distribution: {
+          average_rating: 4.5,
+          num_ratings: 10,
+          display_average_rating: null,
+          display_stars: null,
+          num_five_star_ratings: null,
+          num_four_star_ratings: null,
+          num_three_star_ratings: null,
+          num_two_star_ratings: null,
+          num_one_star_ratings: null,
+        },
+      },
+      category_ladders: [{ root: null, ladder: null }],
+    })
+
+    expect(result.authors).toEqual([])
+    expect(result.narrators).toEqual([])
+    expect(result.runtime_length_min).toBe(0)
+    expect(result.rating?.num_reviews).toBe(0)
+    expect(result.rating?.overall_distribution?.display_average_rating).toBe('0')
+    expect(result.rating?.overall_distribution?.num_one_star_ratings).toBe(0)
+    expect(result.category_ladders).toEqual([{ root: 'Genres', ladder: [] }])
+  })
+
   test('rejects missing asin', () => {
     expect(() => audibleRawItemSchema.parse({ title: 'Test' })).toThrow()
   })
