@@ -141,12 +141,28 @@ export const GENRE_CATEGORIES: Record<AudibleGenre, Partial<Record<AudibleLocale
   'science-fiction/adaptations': { fr: '21229683031', com: '18580642011', 'co.uk': '19378477031' },
   'science-fiction/cyberpunk': { fr: '21229684031', com: '18580633011' },
   'science-fiction/dystopian': { fr: '21229685031', com: '18580635011', 'co.uk': '19378470031' },
-  'science-fiction/first-contact': { fr: '21229682031', com: '18580636011', 'co.uk': '19378471031' },
+  'science-fiction/first-contact': {
+    fr: '21229682031',
+    com: '18580636011',
+    'co.uk': '19378471031',
+  },
   'science-fiction/galactic-empire': { fr: '21229693031' },
-  'science-fiction/genetic-engineering': { fr: '21229686031', com: '18580638011', 'co.uk': '19378473031' },
+  'science-fiction/genetic-engineering': {
+    fr: '21229686031',
+    com: '18580638011',
+    'co.uk': '19378473031',
+  },
   'science-fiction/military': { fr: '21229688031', com: '18580641011', 'co.uk': '19378476031' },
-  'science-fiction/post-apocalyptic': { fr: '21229687031', com: '18580643011', 'co.uk': '19378478031' },
-  'science-fiction/space-exploration': { fr: '21229689031', com: '18580644011', 'co.uk': '19378479031' },
+  'science-fiction/post-apocalyptic': {
+    fr: '21229687031',
+    com: '18580643011',
+    'co.uk': '19378478031',
+  },
+  'science-fiction/space-exploration': {
+    fr: '21229689031',
+    com: '18580644011',
+    'co.uk': '19378479031',
+  },
   'science-fiction/space-opera': { fr: '21229694031', com: '18580645011', 'co.uk': '19378480031' },
 
   // Fantasy sub-genres
@@ -187,17 +203,37 @@ export const GENRE_CATEGORIES: Record<AudibleGenre, Partial<Record<AudibleLocale
   'romance/suspense': { fr: '21229090031', com: '18580536011', 'co.uk': '19378437031' },
 
   // Literary Fiction sub-genres
-  'literary-fiction/action-adventure': { fr: '21229016031', com: '18574427011', 'co.uk': '19378254031' },
+  'literary-fiction/action-adventure': {
+    fr: '21229016031',
+    com: '18574427011',
+    'co.uk': '19378254031',
+  },
   'literary-fiction/classics': { fr: '21229007031', com: '18574449011', 'co.uk': '19378271031' },
-  'literary-fiction/coming-of-age': { fr: '21229655031', com: '18574461011', 'co.uk': '19378294031' },
-  'literary-fiction/contemporary': { fr: '21229657031', com: '18574462011', 'co.uk': '19378295031' },
+  'literary-fiction/coming-of-age': {
+    fr: '21229655031',
+    com: '18574461011',
+    'co.uk': '19378294031',
+  },
+  'literary-fiction/contemporary': {
+    fr: '21229657031',
+    com: '18574462011',
+    'co.uk': '19378295031',
+  },
   'literary-fiction/drama': { fr: '21229017031', com: '18574450011', 'co.uk': '19378272031' },
   'literary-fiction/family-life': { fr: '21229670031', com: '18574465011', 'co.uk': '19378298031' },
   'literary-fiction/fiction': { fr: '21229019031', com: '18574456011', 'co.uk': '19378276031' },
   'literary-fiction/historical': { fr: '21229010031', com: '18574482011', 'co.uk': '19378316031' },
   'literary-fiction/sagas': { fr: '21229654031', com: '18574476011' },
-  'literary-fiction/sea-adventures': { fr: '21229673031', com: '18574434011', 'co.uk': '19378310031' },
-  'literary-fiction/world-literature': { fr: '21229018031', com: '18574521011', 'co.uk': '19378348031' },
+  'literary-fiction/sea-adventures': {
+    fr: '21229673031',
+    com: '18574434011',
+    'co.uk': '19378310031',
+  },
+  'literary-fiction/world-literature': {
+    fr: '21229018031',
+    com: '18574521011',
+    'co.uk': '19378348031',
+  },
 
   // Biography sub-genres
   'biography/entertainment': { fr: '21228985031', com: '18571984011', 'co.uk': '19393920031' },
@@ -208,14 +244,22 @@ export const GENRE_CATEGORIES: Record<AudibleGenre, Partial<Record<AudibleLocale
   // Children sub-genres
   'children/action-adventure': { fr: '21228913031', com: '18572092011', 'co.uk': '19376663031' },
   'children/mystery': { fr: '21228927031', com: '18572548011', 'co.uk': '19377096031' },
-  'children/science-fiction-fantasy': { fr: '21228926031', com: '18572586011', 'co.uk': '19377132031' },
+  'children/science-fiction-fantasy': {
+    fr: '21228926031',
+    com: '18572586011',
+    'co.uk': '19377132031',
+  },
   'children/fantasy': { fr: '21229338031', com: '18572587011' },
   'children/science-fiction': { fr: '21229339031', com: '18572593011' },
 
   // Young Adult sub-genres
   'young-adult/literary-fiction': { fr: '21229110031', com: '18580894011', 'co.uk': '19377728031' },
   'young-adult/romance': { fr: '21229117031', com: '18581004011', 'co.uk': '19377836031' },
-  'young-adult/science-fiction-fantasy': { fr: '21229103031', com: '18581048011', 'co.uk': '19377879031' },
+  'young-adult/science-fiction-fantasy': {
+    fr: '21229103031',
+    com: '18581048011',
+    'co.uk': '19377879031',
+  },
   'young-adult/fantasy': { fr: '21230013031', com: '18581049011' },
   'young-adult/science-fiction': { fr: '21230014031', com: '18581062011' },
   'young-adult/thriller': { fr: '21229114031', com: '18580961011', 'co.uk': '19377808031' },
