@@ -138,6 +138,29 @@ type RatingDistribution = {
 
 ---
 
+## PlaybackLicense
+
+What a FairPlay player needs, returned by `playbackLicense()`.
+
+```typescript
+type PlaybackLicense = {
+  asin: string
+  acr: string                  // Content reference, needed by savePosition
+  streamUrl: string            // FairPlay HLS playlist, signed, time-limited
+  certificate: string          // FairPlay application certificate, base64
+  durationMs: number
+  chapters: AudibleChapter[]   // In playing order, a part's chapters after it
+  codec?: string               // 'mp4a.40.42' for xHE-AAC
+  lastPosition?: { positionMs: number; lastUpdatedAt: Date }
+}
+
+type AudibleChapter = { title: string; startMs: number; lengthMs: number }
+
+type ConsumptionType = 'Streaming' | 'Download'
+```
+
+---
+
 ## LastPosition
 
 Where the reader last stopped in a library item, returned by `lastPositions()`.

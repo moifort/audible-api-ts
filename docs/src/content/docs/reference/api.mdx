@@ -114,6 +114,50 @@ items.map((book) =>
 
 ---
 
+### `playbackLicense(credentials, asin, options?)`
+
+Ask Audible for a FairPlay licence to play a title the account owns. The answer is an HLS stream encrypted with FairPlay (SAMPLE-AES, `skd://` keys) that Apple's AVFoundation plays as it is — nothing is decrypted outside Apple's player. It also carries the chapters and the position Audible last saved. Credentials are auto-refreshed before the call.
+
+```typescript
+const { license } = await playbackLicense(credentials, 'B0H95GDVTN')
+// license.streamUrl, license.certificate, license.chapters, license.lastPosition
+```
+
+**Parameters:**
+| Name | Type | Description |
+|------|------|-------------|
+| `credentials` | `AudibleCredentials` | Valid credentials |
+| `asin` | `string` | A title the account owns |
+| `options.consumption` | `ConsumptionType` | `'Streaming'` (default) or `'Download'` |
+
+**Returns:** `Promise<{ license: PlaybackLicense, credentials: AudibleCredentials }>`
+
+**Throws:** `LicenseDeniedError` when Audible grants no FairPlay licence; its `reasons` carry Audible's words.
+
+---
+
+### `fairPlayKey(credentials, asin, spc, options?)`
+
+Trade the player's FairPlay key request (SPC, base64) for the content key (CKC, base64). The SPC comes from `AVContentKeyRequest.makeStreamingContentKeyRequestData(forApp:contentIdentifier:)` with the licence's certificate and the `skd://` URI without its scheme.
+
+**Returns:** `Promise<{ ckc: string, credentials: AudibleCredentials }>`
+
+---
+
+### `savePosition(credentials, { asin, acr, positionMs })`
+
+Save where the listener stopped; every Audible app on the account resumes there. `acr` is the licence's content reference.
+
+**Returns:** `Promise<{ credentials: AudibleCredentials }>`
+
+---
+
+### `deregister(credentials)`
+
+Remove the registered device from the Amazon account. The credentials stop working for good.
+
+---
+
 ### `lastPositions(credentials, asins)`
 
 Fetch where the reader last stopped in each of the given titles. Asked in batches of 25, the most Audible accepts per call; a title the reader never opened is left out of the answer. Credentials are auto-refreshed before the call.

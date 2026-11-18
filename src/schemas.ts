@@ -171,3 +171,68 @@ export const audibleRawItemSchema = z.object({
     .nullish()
     .transform((v) => v ?? false),
 })
+
+/** A chapter as the licence lists it. A part ("Première partie") nests its own
+ *  chapters; its own length covers only what plays before the first of them. */
+type RawChapter = {
+  title: string
+  start_offset_ms: number
+  length_ms: number
+  chapters?: RawChapter[] | null
+}
+
+const rawChapterSchema: z.ZodType<RawChapter> = z.lazy(() =>
+  z.object({
+    title: z.string(),
+    start_offset_ms: z.number(),
+    length_ms: z.number(),
+    chapters: z.array(rawChapterSchema).nullish(),
+  }),
+)
+
+const lastPositionHeardSchema = z
+  .object({
+    status: z.string(),
+    position_ms: z.number().nullish(),
+    last_updated: z.string().nullish(),
+  })
+  .nullish()
+
+export const licenseResponseSchema = z.object({
+  content_license: z.object({
+    status_code: z.string(),
+    asin: z.string(),
+    acr: z.string().nullish(),
+    drm_type: z.string().nullish(),
+    license_response: z.string().nullish(),
+    certificate: z.string().nullish(),
+    license_denial_reasons: z
+      .array(
+        z.object({
+          message: z.string().nullish(),
+          rejectionReason: z.string().nullish(),
+          validationType: z.string().nullish(),
+        }),
+      )
+      .nullish(),
+    content_metadata: z
+      .object({
+        chapter_info: z
+          .object({
+            brandIntroDurationMs: z.number().nullish(),
+            brandOutroDurationMs: z.number().nullish(),
+            is_accurate: z.boolean().nullish(),
+            runtime_length_ms: z.number(),
+            chapters: z.array(rawChapterSchema).nullish(),
+          })
+          .nullish(),
+        content_reference: z
+          .object({ codec: z.string().nullish(), content_format: z.string().nullish() })
+          .nullish(),
+        last_position_heard: lastPositionHeardSchema,
+      })
+      .nullish(),
+  }),
+})
+
+export const drmLicenseResponseSchema = z.object({ license: z.string().min(1) })

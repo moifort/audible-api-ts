@@ -33,7 +33,7 @@ const credentials = await register(code, session)
 
 ### refresh(credentials: AudibleCredentials): Promise<AudibleCredentials>
 
-Manually refresh an access token. Usually not needed — all API functions (`library`, `wishlist`, `lastPositions`, `catalog`, `search`, `product`, `verify`) auto-refresh credentials before each call.
+Manually refresh an access token. Usually not needed — all API functions (`library`, `wishlist`, `lastPositions`, `playbackLicense`, `fairPlayKey`, `savePosition`, `catalog`, `search`, `product`, `verify`) auto-refresh credentials before each call.
 
 ```typescript
 import { refresh } from 'audible-api-ts'
@@ -69,6 +69,38 @@ const { items } = await library(credentials)
 const { positions } = await lastPositions(credentials, items.map(({ asin }) => asin))
 const inProgress = positions.filter(({ positionMs }) => positionMs > 5 * 60 * 1000)
 ```
+
+### playbackLicense(credentials: AudibleCredentials, asin: string, options?: { consumption?: ConsumptionType }): Promise<{ license: PlaybackLicense, credentials }>
+
+Ask Audible for a FairPlay licence to play an owned title (`POST /1.0/content/{asin}/licenserequest`, drm_type FairPlay). The licence is an HLS playlist encrypted with FairPlay (SAMPLE-AES, `skd://` keys) that Apple's AVFoundation plays as it is: nothing is decrypted outside Apple's player, and the AAX/AAXC path is never used. It also carries the chapters (a part's chapters flattened after it) and the position Audible last saved. Throws `LicenseDeniedError` (with Audible's `reasons`) when no FairPlay licence is granted. Credentials are auto-refreshed before the call.
+
+```typescript
+import { playbackLicense } from 'audible-api-ts'
+const { license } = await playbackLicense(credentials, 'B0H95GDVTN')
+// license.streamUrl → HLS m3u8 (signed, time-limited), license.certificate → base64
+```
+
+### fairPlayKey(credentials: AudibleCredentials, asin: string, spc: string, options?: { consumption?: ConsumptionType }): Promise<{ ckc: string, credentials }>
+
+The FairPlay key server (`POST /1.0/content/{asin}/drmlicense`). Pass the base64 SPC that `AVContentKeyRequest.makeStreamingContentKeyRequestData(forApp: certificate, contentIdentifier: <skd URI without "skd://">)` produced; hand the base64 CKC back to `AVContentKeyResponse(fairPlayStreamingKeyResponseData:)`.
+
+```typescript
+import { fairPlayKey } from 'audible-api-ts'
+const { ckc } = await fairPlayKey(credentials, asin, spcBase64)
+```
+
+### savePosition(credentials: AudibleCredentials, { asin, acr, positionMs }): Promise<{ credentials }>
+
+Save where the listener stopped (`PUT /1.0/lastpositions/{asin}`), as Audible's own players do: every app on the account resumes there. `acr` comes from the licence the title was played from.
+
+```typescript
+import { savePosition } from 'audible-api-ts'
+await savePosition(credentials, { asin, acr: license.acr, positionMs: 4_215_000 })
+```
+
+### deregister(credentials: AudibleCredentials): Promise<void>
+
+Remove the registered device from the Amazon account. The credentials stop working for good.
 
 ### catalog(credentials: AudibleCredentials, options: CatalogOptions): Promise<{ items: AudibleItem[], credentials }>
 
@@ -206,6 +238,27 @@ Returned by library(), wishlist(), catalog(), search() and product().
   numOneStarRatings: number
 }
 ```
+
+### PlaybackLicense
+
+Returned by playbackLicense().
+
+```typescript
+{
+  asin: string
+  acr: string                 // content reference, needed by savePosition
+  streamUrl: string           // FairPlay HLS playlist, signed, time-limited
+  certificate: string         // FairPlay application certificate, base64
+  durationMs: number
+  chapters: AudibleChapter[]  // { title, startMs, lengthMs }, in playing order
+  codec?: string              // 'mp4a.40.42' for xHE-AAC
+  lastPosition?: { positionMs: number, lastUpdatedAt: Date }
+}
+```
+
+### ConsumptionType
+
+`'Streaming' | 'Download'`
 
 ### LastPosition
 

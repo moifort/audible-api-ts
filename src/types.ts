@@ -93,6 +93,34 @@ export type LastPosition = {
   lastUpdatedAt: Date
 }
 
+/** How a title is licensed: played from the network, or kept on the device. */
+export type ConsumptionType = 'Streaming' | 'Download'
+
+/** A chapter of a recording, in playing order. */
+export type AudibleChapter = {
+  title: string
+  /** Milliseconds from the start of the recording. */
+  startMs: number
+  lengthMs: number
+}
+
+/** What a FairPlay player needs to play a title, from a granted licence. */
+export type PlaybackLicense = {
+  asin: string
+  /** The content reference: what a saved position is written against. */
+  acr: string
+  /** The HLS playlist, FairPlay-encrypted, signed for a limited time. */
+  streamUrl: string
+  /** The FairPlay application certificate, base64. */
+  certificate: string
+  durationMs: number
+  chapters: AudibleChapter[]
+  /** The codec Audible chose, `mp4a.40.42` for xHE-AAC. */
+  codec?: string
+  /** Where the listener last stopped, on any device. Absent on a title never opened. */
+  lastPosition?: { positionMs: number; lastUpdatedAt: Date }
+}
+
 /** An audiobook item from Audible */
 export type AudibleItem = {
   // Identity

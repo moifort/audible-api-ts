@@ -19,6 +19,32 @@ export const audibleFetch = async <T>(
   credentials: AudibleCredentials,
   query?: Record<string, string>,
 ) => {
+  const { response, credentials: fresh } = await signedRequest('GET', path, credentials, { query })
+  return { data: (await response.json()) as T, credentials: fresh }
+}
+
+/** A signed call that writes: the JSON body is part of the signature, so it is
+ *  serialised once and sent exactly as signed. Answers whatever JSON came back,
+ *  or `undefined` for an empty answer (a 204). */
+export const audibleSend = async <T>(
+  method: 'POST' | 'PUT',
+  path: string,
+  credentials: AudibleCredentials,
+  payload: unknown,
+) => {
+  const { response, credentials: fresh } = await signedRequest(method, path, credentials, {
+    body: JSON.stringify(payload),
+  })
+  const text = await response.text()
+  return { data: (text ? JSON.parse(text) : undefined) as T | undefined, credentials: fresh }
+}
+
+const signedRequest = async (
+  method: 'GET' | 'POST' | 'PUT',
+  path: string,
+  credentials: AudibleCredentials,
+  { query, body = '' }: { query?: Record<string, string>; body?: string },
+) => {
   const fresh = await ensureFresh(credentials)
   const config = AUDIBLE_LOCALES[fresh.locale]
   const fullPath = `/1.0${path}`
@@ -26,17 +52,20 @@ export const audibleFetch = async <T>(
   const queryString = query ? `?${toQueryString(query)}` : ''
   const signPath = `${fullPath}${queryString}`
 
-  const headers = signRequest('GET', signPath, '', fresh)
+  const headers = {
+    ...signRequest(method, signPath, body, fresh),
+    ...(body ? { 'Content-Type': 'application/json', Accept: 'application/json' } : {}),
+  }
 
   const fetchUrl = `https://api.audible.${config.domain}${fullPath}${queryString}`
 
-  const response = await fetch(fetchUrl, { headers })
+  const response = await fetch(fetchUrl, { method, headers, body: body || undefined })
 
   if (!response.ok) {
     throw new Error(`Audible API error: ${response.status} ${response.statusText} (${path})`)
   }
 
-  return { data: (await response.json()) as T, credentials: fresh }
+  return { response, credentials: fresh }
 }
 
 const extractItems = (response: Record<string, unknown>): unknown[] =>

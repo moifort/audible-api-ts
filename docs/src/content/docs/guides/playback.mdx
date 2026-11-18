@@ -1,0 +1,49 @@
+---
+title: Playback
+description: Play an owned title with Apple's FairPlay and keep the position in sync with Audible.
+---
+
+Audible streams owned titles to Apple devices as HLS encrypted with **FairPlay**. AVFoundation
+plays that stream as it is: the key exchange runs through Apple's player, and nothing is ever
+decrypted outside it. This library only carries the three calls a player needs — it never
+touches AAX/AAXC files.
+
+## 1. Ask for a licence
+
+```typescript
+import { playbackLicense } from 'audible-api-ts'
+
+const { license, credentials: fresh } = await playbackLicense(credentials, asin)
+// license.streamUrl     → the HLS playlist (signed, time-limited)
+// license.certificate   → the FairPlay application certificate, base64
+// license.chapters      → [{ title, startMs, lengthMs }]
+// license.lastPosition  → where the listener stopped, on any device
+```
+
+A denied licence throws `LicenseDeniedError`, whose `reasons` carry Audible's own words. Amazon
+limits licences per device profile: ask for one when the listener presses play, not ahead.
+
+## 2. Answer the player's key request
+
+Hand the stream to an `AVURLAsset` added to an `AVContentKeySession(keySystem: .fairPlayStreaming)`.
+For each key request, build the SPC with the certificate and the `skd://` URI **without its
+scheme**, send it to your server, and trade it there:
+
+```typescript
+import { fairPlayKey } from 'audible-api-ts'
+
+const { ckc } = await fairPlayKey(credentials, asin, spcBase64)
+// back in Swift: AVContentKeyResponse(fairPlayStreamingKeyResponseData: Data(base64Encoded: ckc)!)
+```
+
+The device credentials sign the call, so the exchange belongs on a server that keeps them.
+
+## 3. Save the position
+
+```typescript
+import { savePosition } from 'audible-api-ts'
+
+await savePosition(credentials, { asin, acr: license.acr, positionMs })
+```
+
+Every Audible app on the account resumes where this call left the listener.

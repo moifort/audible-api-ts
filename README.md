@@ -139,6 +139,10 @@ Available genres: `'science-fiction'`, `'fantasy'`, `'thriller'`, `'romance'`, `
 | `library(credentials)` | Fetch all library audiobooks |
 | `wishlist(credentials)` | Fetch all wishlist audiobooks |
 | `lastPositions(credentials, asins)` | Where the reader last stopped in each title, the reliable progress signal |
+| `playbackLicense(credentials, asin)` | FairPlay licence for an owned title: HLS stream, certificate, chapters, saved position |
+| `fairPlayKey(credentials, asin, spc)` | Trade a FairPlay key request (SPC) for the content key (CKC) |
+| `savePosition(credentials, { asin, acr, positionMs })` | Save where the listener stopped, synced to every Audible app |
+| `deregister(credentials)` | Remove the registered device from the Amazon account |
 | `catalog(credentials, options)` | Search catalog by category with sorting |
 | `search(credentials, options)` | Search the whole catalog by title, author, narrator or keywords |
 | `product(credentials, asin)` | Look one title up by its ASIN, owned or not |

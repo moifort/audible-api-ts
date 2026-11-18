@@ -7,10 +7,18 @@ export type { AudibleGenre } from './categories.js'
 export { GENRE_CATEGORIES, resolveGenreId } from './categories.js'
 export { login, refresh, register } from './client.js'
 export { lastPositions, library, verify, wishlist } from './library.js'
+export {
+  deregister,
+  fairPlayKey,
+  LicenseDeniedError,
+  playbackLicense,
+  savePosition,
+} from './playback.js'
 // Config
 export { AUDIBLE_LOCALES } from './locales.js'
 export type {
   AudibleCategory,
+  AudibleChapter,
   AudibleCookie,
   AudibleCredentials,
   AudibleItem,
@@ -20,9 +28,11 @@ export type {
   AuthSession,
   CatalogOptions,
   CategoryLadder,
+  ConsumptionType,
   LastPosition,
   ListeningStatus,
   LocaleConfig,
+  PlaybackLicense,
   RatingDistribution,
   SearchOptions,
 } from './types.js'
