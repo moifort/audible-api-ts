@@ -32,6 +32,14 @@ describe('playback integration', () => {
     expect(license.lastPosition?.positionMs).toBe(latest.positionMs)
   })
 
+  test('playbackLicense grants a FairPlay download licence to keep the title offline', async () => {
+    const { credentials, latest } = await latestTitle()
+    const { license } = await playbackLicense(credentials, latest.asin, { consumption: 'Download' })
+
+    expect(license.streamUrl).toStartWith('https://')
+    expect(license.certificate.length).toBeGreaterThan(100)
+  })
+
   test('savePosition rewrites the saved position, unchanged', async () => {
     const { credentials, latest } = await latestTitle()
     const { license, credentials: fresh } = await playbackLicense(credentials, latest.asin)

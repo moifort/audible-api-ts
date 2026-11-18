@@ -47,3 +47,20 @@ await savePosition(credentials, { asin, acr: license.acr, positionMs })
 ```
 
 Every Audible app on the account resumes where this call left the listener.
+
+## 4. Keep a title for offline listening
+
+Ask both calls with `consumption: 'Download'`. Audible grants the same FairPlay stream under a
+download licence, which does not expire, and a content key the device is allowed to keep:
+
+```typescript
+const { license } = await playbackLicense(credentials, asin, { consumption: 'Download' })
+const { ckc } = await fairPlayKey(credentials, asin, spcBase64, { consumption: 'Download' })
+```
+
+On the device, download the stream with `AVAssetDownloadURLSession`. For each key request call
+`respondByRequestingPersistableContentKeyRequest()`, then turn the CKC into a key to keep with
+`persistableContentKey(fromKeyVendorResponse:options:)` and store it. Offline, answer the key
+request with that stored key: no call reaches Audible. The stream's signed link lasts 24 hours,
+so a download that does not finish in time asks for a new licence. Still nothing is decrypted
+outside Apple's player.
