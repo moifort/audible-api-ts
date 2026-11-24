@@ -116,7 +116,7 @@ items.map((book) =>
 
 ### `playbackLicense(credentials, asin, options?)`
 
-Ask Audible for a FairPlay licence to play a title the account owns. The answer is an HLS stream encrypted with FairPlay (SAMPLE-AES, `skd://` keys) that Apple's AVFoundation plays as it is — nothing is decrypted outside Apple's player. It also carries the chapters and the position Audible last saved. Credentials are auto-refreshed before the call.
+Ask Audible for a FairPlay licence to play a title the account owns. The answer is an HLS stream encrypted with FairPlay (SAMPLE-AES, `skd://` keys) that Apple's AVFoundation plays as it is — nothing is decrypted outside Apple's player. With `drm: 'Widevine'` the same call answers a DASH manifest (CENC) that Android's MediaDrm plays as it is, for Media3/ExoPlayer. It also carries the chapters and the position Audible last saved. Credentials are auto-refreshed before the call.
 
 ```typescript
 const { license } = await playbackLicense(credentials, 'B0H95GDVTN')

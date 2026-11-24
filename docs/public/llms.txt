@@ -33,7 +33,7 @@ const credentials = await register(code, session)
 
 ### refresh(credentials: AudibleCredentials): Promise<AudibleCredentials>
 
-Manually refresh an access token. Usually not needed — all API functions (`library`, `wishlist`, `lastPositions`, `playbackLicense`, `fairPlayKey`, `savePosition`, `catalog`, `search`, `product`, `verify`) auto-refresh credentials before each call.
+Manually refresh an access token. Usually not needed — all API functions (`library`, `wishlist`, `lastPositions`, `playbackLicense`, `fairPlayKey`, `widevineKey`, `savePosition`, `catalog`, `search`, `product`, `verify`) auto-refresh credentials before each call.
 
 ```typescript
 import { refresh } from 'audible-api-ts'
