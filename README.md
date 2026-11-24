@@ -139,8 +139,9 @@ Available genres: `'science-fiction'`, `'fantasy'`, `'thriller'`, `'romance'`, `
 | `library(credentials)` | Fetch all library audiobooks |
 | `wishlist(credentials)` | Fetch all wishlist audiobooks |
 | `lastPositions(credentials, asins)` | Where the reader last stopped in each title, the reliable progress signal |
-| `playbackLicense(credentials, asin)` | FairPlay licence for an owned title: HLS stream, certificate, chapters, saved position |
+| `playbackLicense(credentials, asin, { drm })` | Licence for an owned title, in FairPlay (HLS, the default) or Widevine (DASH): stream, certificate, chapters, saved position |
 | `fairPlayKey(credentials, asin, spc)` | Trade a FairPlay key request (SPC) for the content key (CKC) |
+| `widevineKey(credentials, asin, challenge)` | Answer a Widevine key request of Android's MediaDrm with the licence |
 | `savePosition(credentials, { asin, acr, positionMs })` | Save where the listener stopped, synced to every Audible app |
 | `deregister(credentials)` | Remove the registered device from the Amazon account |
 | `catalog(credentials, options)` | Search catalog by category with sorting |

@@ -104,14 +104,21 @@ export type AudibleChapter = {
   lengthMs: number
 }
 
-/** What a FairPlay player needs to play a title, from a granted licence. */
+/** The DRM a title is licensed in: Apple's for iOS and macOS, Google's for Android. */
+export type DrmType = 'FairPlay' | 'Widevine'
+
+/** What the platform's player needs to play a title, from a granted licence. */
 export type PlaybackLicense = {
   asin: string
   /** The content reference: what a saved position is written against. */
   acr: string
-  /** The HLS playlist, FairPlay-encrypted, signed for a limited time. */
+  /** The DRM the stream is encrypted for. */
+  drm: DrmType
+  /** The stream, signed for a limited time: an HLS playlist for FairPlay, a
+   *  DASH manifest for Widevine. */
   streamUrl: string
-  /** The FairPlay application certificate, base64. */
+  /** The DRM certificate, base64: FairPlay's application certificate, or
+   *  Widevine's service certificate. */
   certificate: string
   durationMs: number
   chapters: AudibleChapter[]

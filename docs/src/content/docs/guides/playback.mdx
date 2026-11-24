@@ -1,6 +1,6 @@
 ---
 title: Playback
-description: Play an owned title with Apple's FairPlay and keep the position in sync with Audible.
+description: Play an owned title with Apple's FairPlay or Android's Widevine and keep the position in sync with Audible.
 ---
 
 Audible streams owned titles to Apple devices as HLS encrypted with **FairPlay**. AVFoundation
@@ -64,3 +64,31 @@ On the device, download the stream with `AVAssetDownloadURLSession`. For each ke
 request with that stored key: no call reaches Audible. The stream's signed link lasts 24 hours,
 so a download that does not finish in time asks for a new licence. Still nothing is decrypted
 outside Apple's player.
+
+## 5. Play on Android, with Widevine
+
+FairPlay does not exist on Android. Ask the same licence with `drm: 'Widevine'`: Audible answers
+a **DASH** manifest (CENC, the Widevine `pssh` in it) that Android's own DRM plays as it is.
+
+```typescript
+import { playbackLicense, widevineKey } from 'audible-api-ts'
+
+const { license } = await playbackLicense(credentials, asin, { drm: 'Widevine' })
+// license.streamUrl → the DASH manifest (signed, time-limited)
+```
+
+Play it with Media3: a `MediaItem` with the manifest's URL, the `application/dash+xml` type and a
+`DrmConfiguration(C.WIDEVINE_UUID)`, and a `DefaultDrmSessionManager` built with your own
+`MediaDrmCallback`. Its `executeKeyRequest` sends the request's `data`, base64, to your server,
+which trades it:
+
+```typescript
+const { license: key } = await widevineKey(credentials, asin, challengeBase64)
+// back in Kotlin: MediaDrmCallback.Response(Base64.decode(key, Base64.DEFAULT))
+```
+
+Leave `executeProvisionRequest` to Media3's `HttpMediaDrmCallback`: that one goes to Google.
+
+Audible only licenses certified devices. An emulator's software Widevine is refused with a 400,
+`UNTRUSTED_DEVICE_CERTIFICATE`: test on a real phone. The audio is xHE-AAC, which Android decodes
+since version 9. Nothing is decrypted outside Android's DRM.

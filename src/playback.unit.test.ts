@@ -7,6 +7,7 @@ import {
   playbackLicense,
   savePosition,
   toPlaybackLicense,
+  widevineKey,
 } from './playback'
 import type { AudibleCredentials } from './types'
 
@@ -84,6 +85,7 @@ describe('toPlaybackLicense', () => {
 
     expect(license.asin).toBe('B0TEST0001')
     expect(license.acr).toBe('CR!ACR')
+    expect(license.drm).toBe('FairPlay')
     expect(license.streamUrl).toBe('https://example.cloudfront.net/title.m3u8')
     expect(license.certificate).toBe('Q0VSVA==')
     expect(license.durationMs).toBe(3_000_000)
@@ -119,6 +121,27 @@ describe('toPlaybackLicense', () => {
 
     expect(denied).toThrow(LicenseDeniedError)
     expect(denied).toThrow('Device limit reached')
+  })
+
+  test('reads a granted Widevine licence as a DASH stream', () => {
+    const license = toPlaybackLicense(
+      {
+        content_license: {
+          ...granted.content_license,
+          drm_type: 'Widevine',
+          license_response: 'https://example.cloudfront.net/title.mpd',
+        },
+      },
+      'Widevine',
+    )
+
+    expect(license.drm).toBe('Widevine')
+    expect(license.streamUrl).toBe('https://example.cloudfront.net/title.mpd')
+    expect(license.chapters).toHaveLength(3)
+  })
+
+  test('refuses a FairPlay licence when Widevine was asked', () => {
+    expect(() => toPlaybackLicense(granted, 'Widevine')).toThrow('NotWidevine')
   })
 
   test('refuses a licence that is not FairPlay', () => {
@@ -170,6 +193,34 @@ describe('signed writes', () => {
       asin: 'B0TEST0001',
       consumption_type: 'Streaming',
       drm_type: 'FairPlay',
+    })
+  })
+
+  test('playbackLicense asks for Widevine with the codecs Android decodes', async () => {
+    answer(200, {
+      content_license: { ...granted.content_license, drm_type: 'Widevine' },
+    })
+    const { license } = await playbackLicense(credentials, 'B0TEST0001', { drm: 'Widevine' })
+
+    expect(license.drm).toBe('Widevine')
+    const body = JSON.parse(String(calls[0].init.body))
+    expect(body.supported_media_features).toEqual({
+      codecs: ['mp4a.40.2', 'mp4a.40.42'],
+      drm_types: ['Widevine'],
+    })
+  })
+
+  test('widevineKey trades the key request for the licence', async () => {
+    answer(200, { license: 'TElD' })
+    const { license } = await widevineKey(credentials, 'B0TEST0001', 'Q0hBTA==')
+
+    expect(license).toBe('TElD')
+    expect(calls[0].url).toBe('https://api.audible.fr/1.0/content/B0TEST0001/drmlicense')
+    expect(JSON.parse(String(calls[0].init.body))).toEqual({
+      licenseChallenge: 'Q0hBTA==',
+      asin: 'B0TEST0001',
+      consumption_type: 'Streaming',
+      drm_type: 'Widevine',
     })
   })
 

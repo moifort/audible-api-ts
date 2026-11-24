@@ -5,12 +5,17 @@ import type {
   AudibleChapter,
   AudibleCredentials,
   ConsumptionType,
+  DrmType,
   PlaybackLicense,
 } from './types.js'
 
-/** Every codec Apple's player decodes, xHE-AAC included: Audible picks the best
- *  one it holds for the title among them. */
-const FAIRPLAY_CODECS = ['mp4a.40.2', 'mp4a.40.42', 'ec+3', 'ac-4']
+/** The codecs each platform's own player decodes: Audible picks the best one it
+ *  holds for the title among them. Apple's player takes them all; Android only
+ *  promises AAC and, since Android 9, xHE-AAC. */
+const CODECS: Record<DrmType, string[]> = {
+  FairPlay: ['mp4a.40.2', 'mp4a.40.42', 'ec+3', 'ac-4'],
+  Widevine: ['mp4a.40.2', 'mp4a.40.42'],
+}
 
 const LICENSE_GROUPS = 'chapter_info,content_reference,last_position_heard,certificate'
 
@@ -60,8 +65,8 @@ export class LicenseDeniedError extends Error {
   }
 }
 
-/** Read a granted licence into what a FairPlay player needs. */
-export const toPlaybackLicense = (raw: unknown): PlaybackLicense => {
+/** Read a granted licence into what the platform's player needs. */
+export const toPlaybackLicense = (raw: unknown, drm: DrmType = 'FairPlay'): PlaybackLicense => {
   const { content_license: license } = licenseResponseSchema.parse(raw)
   const reasons = (license.license_denial_reasons ?? []).flatMap(({ message, rejectionReason }) =>
     message ? [message] : rejectionReason ? [rejectionReason] : [],
@@ -69,8 +74,8 @@ export const toPlaybackLicense = (raw: unknown): PlaybackLicense => {
   if (license.status_code !== 'Granted') {
     throw new LicenseDeniedError(license.asin, license.status_code, reasons)
   }
-  if (license.drm_type !== 'FairPlay' || !license.license_response || !license.certificate) {
-    throw new LicenseDeniedError(license.asin, 'NotFairPlay', reasons)
+  if (license.drm_type !== drm || !license.license_response || !license.certificate) {
+    throw new LicenseDeniedError(license.asin, `Not${drm}`, reasons)
   }
   if (!license.acr) throw new LicenseDeniedError(license.asin, 'NoContentReference', reasons)
 
@@ -80,6 +85,7 @@ export const toPlaybackLicense = (raw: unknown): PlaybackLicense => {
   return {
     asin: license.asin,
     acr: license.acr,
+    drm,
     streamUrl: license.license_response,
     certificate: license.certificate,
     durationMs: info?.runtime_length_ms ?? 0,
@@ -93,21 +99,28 @@ export const toPlaybackLicense = (raw: unknown): PlaybackLicense => {
 }
 
 /**
- * Ask Audible for a FairPlay licence to play a title the account owns.
+ * Ask Audible for a licence to play a title the account owns, in the DRM of the
+ * platform that will play it.
  *
- * The answer is an HLS stream encrypted with FairPlay (SAMPLE-AES, `skd://` keys)
- * that Apple's AVFoundation plays as it is, nothing decrypted outside it: the
- * key for each `skd://` URI is fetched with {@link fairPlayKey}. It also carries
- * the chapters and the position Audible last saved for the title.
+ * `FairPlay` (the default) answers an HLS stream (SAMPLE-AES, `skd://` keys)
+ * that Apple's AVFoundation plays as it is: the key for each `skd://` URI is
+ * fetched with {@link fairPlayKey}. `Widevine` answers a DASH manifest (CENC,
+ * the Widevine `pssh` in it) that Android's MediaDrm plays as it is: its key
+ * requests are answered with {@link widevineKey}. Nothing is decrypted outside
+ * the platform's own DRM. The licence also carries the chapters and the
+ * position Audible last saved for the title.
  * Credentials are auto-refreshed if expired.
  *
- * @throws {LicenseDeniedError} When Audible does not grant a FairPlay licence
+ * @throws {LicenseDeniedError} When Audible does not grant a licence in that DRM
  * @returns The licence and the (potentially refreshed) credentials
  */
 export const playbackLicense = async (
   credentials: AudibleCredentials,
   asin: string,
-  { consumption = 'Streaming' }: { consumption?: ConsumptionType } = {},
+  {
+    consumption = 'Streaming',
+    drm = 'FairPlay',
+  }: { consumption?: ConsumptionType; drm?: DrmType } = {},
 ) => {
   const { data, credentials: fresh } = await audibleSend<unknown>(
     'POST',
@@ -118,10 +131,10 @@ export const playbackLicense = async (
       consumption_type: consumption,
       response_groups: LICENSE_GROUPS,
       spatial: false,
-      supported_media_features: { codecs: FAIRPLAY_CODECS, drm_types: ['FairPlay'] },
+      supported_media_features: { codecs: CODECS[drm], drm_types: [drm] },
     },
   )
-  return { license: toPlaybackLicense(data), credentials: fresh }
+  return { license: toPlaybackLicense(data, drm), credentials: fresh }
 }
 
 /**
@@ -148,6 +161,32 @@ export const fairPlayKey = async (
     { licenseChallenge: spc, asin, consumption_type: consumption, drm_type: 'FairPlay' },
   )
   return { ckc: drmLicenseResponseSchema.parse(data).license, credentials: fresh }
+}
+
+/**
+ * Answer a Widevine key request from Android's MediaDrm with Audible's licence.
+ *
+ * The challenge is the `data` of `MediaDrm.KeyRequest` (what Media3's
+ * `MediaDrmCallback.executeKeyRequest` receives); the licence goes back to the
+ * player as that callback's answer. Both travel base64-encoded. Neither is a
+ * usable key outside the device's Widevine module.
+ * Credentials are auto-refreshed if expired.
+ *
+ * @returns The Widevine licence, base64, and the (potentially refreshed) credentials
+ */
+export const widevineKey = async (
+  credentials: AudibleCredentials,
+  asin: string,
+  challenge: string,
+  { consumption = 'Streaming' }: { consumption?: ConsumptionType } = {},
+) => {
+  const { data, credentials: fresh } = await audibleSend<unknown>(
+    'POST',
+    `/content/${encodeURIComponent(asin)}/drmlicense`,
+    credentials,
+    { licenseChallenge: challenge, asin, consumption_type: consumption, drm_type: 'Widevine' },
+  )
+  return { license: drmLicenseResponseSchema.parse(data).license, credentials: fresh }
 }
 
 /**

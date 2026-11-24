@@ -140,14 +140,15 @@ type RatingDistribution = {
 
 ## PlaybackLicense
 
-What a FairPlay player needs, returned by `playbackLicense()`.
+What the platform's player needs, returned by `playbackLicense()`.
 
 ```typescript
 type PlaybackLicense = {
   asin: string
   acr: string                  // Content reference, needed by savePosition
-  streamUrl: string            // FairPlay HLS playlist, signed, time-limited
-  certificate: string          // FairPlay application certificate, base64
+  drm: DrmType                 // The DRM the stream is encrypted for
+  streamUrl: string            // HLS playlist (FairPlay) or DASH manifest (Widevine), signed, time-limited
+  certificate: string          // FairPlay application certificate or Widevine service certificate, base64
   durationMs: number
   chapters: AudibleChapter[]   // In playing order, a part's chapters after it
   codec?: string               // 'mp4a.40.42' for xHE-AAC
@@ -157,6 +158,8 @@ type PlaybackLicense = {
 type AudibleChapter = { title: string; startMs: number; lengthMs: number }
 
 type ConsumptionType = 'Streaming' | 'Download'
+
+type DrmType = 'FairPlay' | 'Widevine'
 ```
 
 ---

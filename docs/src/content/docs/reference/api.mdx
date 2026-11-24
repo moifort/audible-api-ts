@@ -129,10 +129,11 @@ const { license } = await playbackLicense(credentials, 'B0H95GDVTN')
 | `credentials` | `AudibleCredentials` | Valid credentials |
 | `asin` | `string` | A title the account owns |
 | `options.consumption` | `ConsumptionType` | `'Streaming'` (default) or `'Download'` |
+| `options.drm` | `DrmType` | `'FairPlay'` (default, an HLS stream) or `'Widevine'` (a DASH manifest, for Android) |
 
 **Returns:** `Promise<{ license: PlaybackLicense, credentials: AudibleCredentials }>`
 
-**Throws:** `LicenseDeniedError` when Audible grants no FairPlay licence; its `reasons` carry Audible's words.
+**Throws:** `LicenseDeniedError` when Audible grants no licence in the DRM asked; its `reasons` carry Audible's words.
 
 ---
 
@@ -141,6 +142,14 @@ const { license } = await playbackLicense(credentials, 'B0H95GDVTN')
 Trade the player's FairPlay key request (SPC, base64) for the content key (CKC, base64). The SPC comes from `AVContentKeyRequest.makeStreamingContentKeyRequestData(forApp:contentIdentifier:)` with the licence's certificate and the `skd://` URI without its scheme.
 
 **Returns:** `Promise<{ ckc: string, credentials: AudibleCredentials }>`
+
+---
+
+### `widevineKey(credentials, asin, challenge, options?)`
+
+Answer a Widevine key request of Android's MediaDrm with Audible's licence, both base64. The challenge is the `data` of the `MediaDrm.KeyRequest` that Media3 hands `MediaDrmCallback.executeKeyRequest`. Audible only trusts certified devices: an emulator is refused (`UNTRUSTED_DEVICE_CERTIFICATE`).
+
+**Returns:** `Promise<{ license: string, credentials: AudibleCredentials }>`
 
 ---
 

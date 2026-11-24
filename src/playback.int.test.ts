@@ -40,6 +40,16 @@ describe('playback integration', () => {
     expect(license.certificate.length).toBeGreaterThan(100)
   })
 
+  test('playbackLicense grants a Widevine DASH manifest for Android', async () => {
+    const { credentials, latest } = await latestTitle()
+    const { license } = await playbackLicense(credentials, latest.asin, { drm: 'Widevine' })
+
+    expect(license.drm).toBe('Widevine')
+    const manifest = await (await fetch(license.streamUrl)).text()
+    expect(manifest).toContain('urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed')
+    expect(license.chapters.length).toBeGreaterThan(0)
+  })
+
   test('savePosition rewrites the saved position, unchanged', async () => {
     const { credentials, latest } = await latestTitle()
     const { license, credentials: fresh } = await playbackLicense(credentials, latest.asin)

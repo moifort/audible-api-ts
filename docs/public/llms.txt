@@ -70,9 +70,9 @@ const { positions } = await lastPositions(credentials, items.map(({ asin }) => a
 const inProgress = positions.filter(({ positionMs }) => positionMs > 5 * 60 * 1000)
 ```
 
-### playbackLicense(credentials: AudibleCredentials, asin: string, options?: { consumption?: ConsumptionType }): Promise<{ license: PlaybackLicense, credentials }>
+### playbackLicense(credentials: AudibleCredentials, asin: string, options?: { consumption?: ConsumptionType, drm?: DrmType }): Promise<{ license: PlaybackLicense, credentials }>
 
-Ask Audible for a FairPlay licence to play an owned title (`POST /1.0/content/{asin}/licenserequest`, drm_type FairPlay). The licence is an HLS playlist encrypted with FairPlay (SAMPLE-AES, `skd://` keys) that Apple's AVFoundation plays as it is: nothing is decrypted outside Apple's player, and the AAX/AAXC path is never used. It also carries the chapters (a part's chapters flattened after it) and the position Audible last saved. Throws `LicenseDeniedError` (with Audible's `reasons`) when no FairPlay licence is granted. Credentials are auto-refreshed before the call.
+Ask Audible for a FairPlay licence to play an owned title (`POST /1.0/content/{asin}/licenserequest`, drm_type FairPlay). The licence is an HLS playlist encrypted with FairPlay (SAMPLE-AES, `skd://` keys) that Apple's AVFoundation plays as it is: nothing is decrypted outside Apple's player, and the AAX/AAXC path is never used. It also carries the chapters (a part's chapters flattened after it) and the position Audible last saved. With `drm: 'Widevine'` the same call (drm_type Widevine) answers a DASH manifest (CENC, the Widevine `pssh` in it, xHE-AAC or AAC) that Android's MediaDrm plays as it is, for Media3/ExoPlayer. Throws `LicenseDeniedError` (with Audible's `reasons`) when no licence is granted in the DRM asked. Credentials are auto-refreshed before the call.
 
 ```typescript
 import { playbackLicense } from 'audible-api-ts'
@@ -87,6 +87,16 @@ The FairPlay key server (`POST /1.0/content/{asin}/drmlicense`). Pass the base64
 ```typescript
 import { fairPlayKey } from 'audible-api-ts'
 const { ckc } = await fairPlayKey(credentials, asin, spcBase64)
+```
+
+### widevineKey(credentials: AudibleCredentials, asin: string, challenge: string, options?: { consumption?: ConsumptionType }): Promise<{ license: string, credentials }>
+
+The Widevine key server (the same `POST /1.0/content/{asin}/drmlicense`, drm_type Widevine). Pass the base64 `data` of the `MediaDrm.KeyRequest` that Media3 hands `MediaDrmCallback.executeKeyRequest`; answer that callback with the decoded licence. Audible only trusts certified devices: an Android emulator is refused with a 400, `UNTRUSTED_DEVICE_CERTIFICATE`.
+
+```typescript
+import { playbackLicense, widevineKey } from 'audible-api-ts'
+const { license } = await playbackLicense(credentials, asin, { drm: 'Widevine' })
+const { license: key } = await widevineKey(credentials, asin, challengeBase64)
 ```
 
 ### savePosition(credentials: AudibleCredentials, { asin, acr, positionMs }): Promise<{ credentials }>
@@ -247,8 +257,9 @@ Returned by playbackLicense().
 {
   asin: string
   acr: string                 // content reference, needed by savePosition
-  streamUrl: string           // FairPlay HLS playlist, signed, time-limited
-  certificate: string         // FairPlay application certificate, base64
+  drm: DrmType                // 'FairPlay' | 'Widevine'
+  streamUrl: string           // HLS playlist (FairPlay) or DASH manifest (Widevine), signed, time-limited
+  certificate: string         // FairPlay application certificate or Widevine service certificate, base64
   durationMs: number
   chapters: AudibleChapter[]  // { title, startMs, lengthMs }, in playing order
   codec?: string              // 'mp4a.40.42' for xHE-AAC

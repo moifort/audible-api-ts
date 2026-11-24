@@ -13,6 +13,7 @@ export {
   LicenseDeniedError,
   playbackLicense,
   savePosition,
+  widevineKey,
 } from './playback.js'
 // Config
 export { AUDIBLE_LOCALES } from './locales.js'
@@ -29,6 +30,7 @@ export type {
   CatalogOptions,
   CategoryLadder,
   ConsumptionType,
+  DrmType,
   LastPosition,
   ListeningStatus,
   LocaleConfig,
